@@ -69,42 +69,47 @@ def map_dept_detailed(dept, job):
         else ""
     )
 
-    # 표준 부서명 명칭 정돈
+    # 표준 부서명 정돈
     if dept_str in ["일반내과", "내과"]:
-        dept_str = "내과"
+        dept_clean = "내과"
     elif dept_str in ["물리치료팀", "물리치료실"]:
-        dept_str = "물리치료실"
+        dept_clean = "물리치료실"
     elif dept_str in ["수납계", "원무계", "수납/접수"]:
-        dept_str = "수납/접수"
+        dept_clean = "수납/접수"
+    else:
+        dept_clean = dept_str
+
+    # 외래 관련 진료과/부서 목록
+    outpatient_depts = [
+        "화상외과",
+        "성형외과",
+        "재활의학과",
+        "내과",
+        "소아청소년과",
+        "외래",
+    ]
 
     # 규칙 1: 직종이 '의사'인 경우 -> '1. 진료과'
     if job_str == "의사":
-        sub_dept = dept_str if dept_str else "진료과"
+        sub_dept = dept_clean if dept_clean else "진료과"
         return "1. 진료과", sub_dept
 
-    # 규칙 2: 직종이 '간호사'인 경우 -> '2. 간호부' (외래, 병동, 중환자실 등)
+    # 규칙 2: 직종이 '간호사'인 경우 -> '2. 간호부'
     if job_str == "간호사":
-        sub_dept = dept_str if dept_str else "외래"
-        return "2. 간호부", sub_dept
+        # 화상외과, 성형외과, 재활의학과, 내과, 소아청소년과, 외래 소속 간호사는 모두 '외래'로 합침
+        if dept_clean in outpatient_depts:
+            return "2. 간호부", "외래"
+        else:
+            return "2. 간호부", dept_clean if dept_clean else "외래"
 
-    # 규칙 3: 기타 직종의 부서별 매핑
-    if dept_str in ["화상외과", "성형외과", "재활의학과", "내과", "소아청소년과"]:
-        return "1. 진료과", dept_str
-    elif dept_str in [
-        "외래",
-        "신관3병동",
-        "본관5병동",
-        "본관6병동",
-        "본관7병동",
-        "본관8병동",
-        "응급실",
-        "화상중환자실",
-    ]:
-        return "2. 간호부", dept_str
-    elif dept_str in ["물리치료실", "영상의학과", "수납/접수"]:
-        return "3. 진료지원 및 행정", dept_str
+    # 규칙 3: 기타 직종 부서 매핑
+    if dept_clean in ["물리치료실", "영상의학과", "수납/접수"]:
+        return "3. 진료지원 및 행정", dept_clean
 
-    return "4. 기타", dept_str if dept_str else "기타"
+    if dept_clean in outpatient_depts:
+        return "2. 간호부", "외래"
+
+    return "4. 기타", dept_clean if dept_clean else "기타"
 
 
 def process_excel(df_raw):
