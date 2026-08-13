@@ -15,7 +15,7 @@ st.write(
 uploaded_file = st.file_uploader("엑셀 파일을 선택하세요", type=["xlsx", "xls"])
 
 
-# 1. 직종 -> 직군 매핑
+# 1. 직종 -> 직군 매핑 (순서: 의사, 간호, 진료지원, 행정)
 def map_job(job):
     if pd.isna(job):
         return "기타"
@@ -31,7 +31,7 @@ def map_job(job):
     return "기타"
 
 
-# 2. 상황별 카테고리 매핑 (넘버링 제거)
+# 2. 상황별 카테고리 매핑 (이미지 명칭 반영)
 def map_context(item):
     if pd.isna(item):
         return "그 외 항목"
@@ -43,20 +43,20 @@ def map_context(item):
     elif item == "의약품 투여 전":
         return "투약"
     elif item.startswith("검사 시행 전"):
-        return "검사/검체 채취"
+        return "검사 및 검체채취"
     elif (
         item.startswith("처치 및 시술 전")
         or item.startswith("혈액제제 투여 전")
         or "수술전" in item
     ):
-        return "처치/수술/수혈"
+        return "처치/수술 및 수혈"
     elif item == "기 타 - 물리치료":
         return "물리치료"
     else:
         return "그 외 항목"
 
 
-# 3. 부서 대분류 & 소분류 매핑 (넘버링 제거)
+# 3. 부서 대분류 & 소분류 매핑
 def map_dept_detailed(dept, job):
     dept_str = (
         str(dept).strip()
@@ -396,7 +396,7 @@ if uploaded_file is not None:
         st.divider()
 
         # -------------------------------------------------------------
-        # 2. 직군별 정확한 환자 확인
+        # 2. 직군별 정확한 환자 확인 (순서: 의사, 간호, 진료지원, 행정)
         # -------------------------------------------------------------
         st.subheader("👥 2) 직군별 정확한 환자 확인")
         raw_job = calc_stats_raw(df, "직군")
@@ -409,8 +409,9 @@ if uploaded_file is not None:
         raw_job_filtered = raw_job_filtered.sort_values("직군").reset_index(
             drop=True
         )
-
-        res_job_df = format_stats_df(raw_job, "직군")
+        
+        # 테이블 데이터도 동일한 순서로 정렬
+        res_job_df = format_stats_df(raw_job_filtered, "직군")
         st.dataframe(res_job_df, use_container_width=True)
 
         fig_job = go.Figure()
@@ -466,7 +467,7 @@ if uploaded_file is not None:
         st.divider()
 
         # -------------------------------------------------------------
-        # 3. 상황별 정확한 환자 확인
+        # 3. 상황별 정확한 환자 확인 (순서: 입원/외래진료/수납, 투약, 검사 및 검체채취, 처치/수술 및 수혈, 물리치료)
         # -------------------------------------------------------------
         st.subheader("📋 3) 상황별 정확한 환자 확인")
         raw_context = calc_stats_raw(df, "상황")
@@ -474,8 +475,8 @@ if uploaded_file is not None:
         context_order = [
             "입원/외래진료/수납",
             "투약",
-            "검사/검체 채취",
-            "처치/수술/수혈",
+            "검사 및 검체채취",
+            "처치/수술 및 수혈",
             "물리치료",
         ]
         raw_context_filtered = raw_context[
@@ -488,7 +489,7 @@ if uploaded_file is not None:
             "상황"
         ).reset_index(drop=True)
 
-        res_context_df = format_stats_df(raw_context, "상황")
+        res_context_df = format_stats_df(raw_context_filtered, "상황")
         st.dataframe(res_context_df, use_container_width=True)
 
         fig_context = go.Figure()
@@ -603,9 +604,7 @@ if uploaded_file is not None:
 
         valid_categories = ["진료과", "간호부", "진료지원 및 행정"]
         dept_categories = [
-            c
-            for c in sorted(raw_dept_sub["부서_대분류"].unique())
-            if c in valid_categories
+            c for c in valid_categories if c in raw_dept_sub["부서_대분류"].unique()
         ]
 
         tabs = st.tabs(dept_categories)
@@ -617,7 +616,29 @@ if uploaded_file is not None:
                     ~sub_df["부서_소분류"].str.lower().isin(["기타", "none", "nan"])
                 ].copy()
 
-                if cat == "진료지원 및 행정":
+                # 이미지 순서에 맞춘 세부 부서(소분류) 정렬 적용
+                if cat == "진료과":
+                    custom_order = ["화상외과", "성형외과", "재활의학과", "내과", "소아청소년과"]
+                    sub_df["부서_소분류"] = pd.Categorical(
+                        sub_df["부서_소분류"], categories=custom_order, ordered=True
+                    )
+                    sub_df = sub_df.sort_values("부서_소분류").reset_index(drop=True)
+                elif cat == "간호부":
+                    custom_order = [
+                        "외래",
+                        "신관3병동",
+                        "본관5병동",
+                        "본관6병동",
+                        "본관7병동",
+                        "본관8병동",
+                        "응급실",
+                        "화상중환자실",
+                    ]
+                    sub_df["부서_소분류"] = pd.Categorical(
+                        sub_df["부서_소분류"], categories=custom_order, ordered=True
+                    )
+                    sub_df = sub_df.sort_values("부서_소분류").reset_index(drop=True)
+                elif cat == "진료지원 및 행정":
                     custom_order = ["물리치료실", "영상의학과", "수납/접수"]
                     sub_df["부서_소분류"] = pd.Categorical(
                         sub_df["부서_소분류"],
