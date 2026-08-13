@@ -383,19 +383,21 @@ if uploaded_file is not None:
             bargap=0.25,
             bargroupgap=0.08,
             height=580,
-            margin=dict(l=20, r=20, t=50, b=30),
+            margin=dict(l=10, r=10, t=50, b=30),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.26,
+                y=-0.22,
                 xanchor="center",
                 x=0.5,
-                font=dict(size=10.5),
-                itemwidth=40,
+                font=dict(size=10),
+                itemwidth=30,
+                entrywidth=85,
+                entrywidthmode="pixels"
             ),
         )
 
-        col_l1, col_m1, col_r1 = st.columns([1, 3, 1])
+        col_l1, col_m1, col_r1 = st.columns([0.2, 4.6, 0.2])
         with col_m1:
             st.plotly_chart(fig_total, use_container_width=True)
 
