@@ -827,6 +827,14 @@ if uploaded_file is not None:
                 hole=0.3,
             )
 
+            fig_pie.update_traces(
+                textposition="inside",
+                textinfo="label+percent+value",
+                texttemplate="<b>%{label}</b><br>%{value}건 (%{percent})",
+                insidetextfont=dict(size=20, color="black"),
+                insidetextorientation="horizontal",
+            )
+
             fig_pie.update_layout(
                 title=dict(
                     x=0.5,
