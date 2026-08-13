@@ -16,22 +16,6 @@ st.write(
 uploaded_file = st.file_uploader("엑셀 파일을 선택하세요", type=["xlsx", "xls"])
 
 
-# [추가] 차트 이미지 다운로드 시 테두리를 그려주는 함수
-def add_chart_border(fig, color="#333333", width=2):
-    fig.add_shape(
-        type="rect",
-        xref="container",
-        yref="container",
-        x0=0.001,
-        y0=0.001,
-        x1=0.999,
-        y1=0.999,
-        line=dict(color=color, width=width),
-        fillcolor="rgba(0,0,0,0)",
-    )
-    return fig
-
-
 # 1. 직종 -> 직군 매핑
 def map_job(job):
     if pd.isna(job):
@@ -432,8 +416,6 @@ if uploaded_file is not None:
                 entrywidthmode="pixels",
             ),
         )
-        # 이미지 다운로드용 외곽 테두리 추가
-        add_chart_border(fig_total)
 
         col_l1, col_m1, col_r1 = st.columns(col_ratio)
         with col_m1:
@@ -528,8 +510,6 @@ if uploaded_file is not None:
                 entrywidthmode="pixels",
             ),
         )
-        # 이미지 다운로드용 외곽 테두리 추가
-        add_chart_border(fig_job)
 
         col_l2, col_m2, col_r2 = st.columns([0.5, 4, 0.5])
         with col_m2:
@@ -634,8 +614,6 @@ if uploaded_file is not None:
                 entrywidthmode="pixels",
             ),
         )
-        # 이미지 다운로드용 외곽 테두리 추가
-        add_chart_border(fig_context)
 
         col_l3, col_m3, col_r3 = st.columns([0.2, 4.6, 0.2])
         with col_m3:
@@ -807,8 +785,6 @@ if uploaded_file is not None:
                     height=580,
                     margin=dict(l=80, r=60, t=100, b=90),
                 )
-                # 이미지 다운로드용 외곽 테두리 추가
-                add_chart_border(fig_dept_sub)
 
                 col_l4, col_m4, col_r4 = st.columns([0.5, 4, 0.5])
                 with col_m4:
@@ -878,8 +854,6 @@ if uploaded_file is not None:
                     font=dict(size=18),
                 ),
             )
-            # 이미지 다운로드용 외곽 테두리 추가
-            add_chart_border(fig_pie)
 
             col_pie_l, col_pie_m, col_pie_r = st.columns([0.5, 4, 0.5])
             with col_pie_m:
