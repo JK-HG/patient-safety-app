@@ -336,13 +336,13 @@ if uploaded_file is not None:
                         f"<b>{fin}명</b><br>({fin_pct}%)",
                     ],
                     textposition="inside",
-                    insidetextfont=dict(size=12, color="white"),
+                    insidetextfont=dict(size=11, color="white"),
                     marker_color=pass_color,
                     offsetgroup=q_name,
                 )
             )
 
-            # 미시행 막대
+            # 미시행 막대 (간결한 숫자로 표시하여 겹침 방지)
             fail_p1, fail_p2, fail_fin = tot - p1, tot - p2, tot - fin
             
             fig_total.add_trace(
@@ -364,8 +364,6 @@ if uploaded_file is not None:
             )
 
         max_total = max([q["total"] for q in ordered_quarter_data.values()])
-
-        fig_total.update_traces(insidetextangle=0)  # 안전하게 회전 방지 적용
 
         fig_total.update_layout(
             barmode="group",
@@ -440,8 +438,6 @@ if uploaded_file is not None:
                 marker_color="#109618",
             )
         )
-
-        fig_job.update_traces(insidetextangle=0)
 
         for idx, row in raw_job_filtered.iterrows():
             total_height = row["1차확인_비율"] + row["2차확인_비율"]
@@ -522,8 +518,6 @@ if uploaded_file is not None:
                 marker_color="#109618",
             )
         )
-
-        fig_context.update_traces(insidetextangle=0)
 
         for idx, row in raw_context_filtered.iterrows():
             total_height = row["1차확인_비율"] + row["2차확인_비율"]
