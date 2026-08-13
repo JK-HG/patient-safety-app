@@ -111,16 +111,16 @@ def map_dept_detailed(dept, job):
     return "4. 기타", dept_clean if dept_clean else "기타"
 
 
-# 4. 미시행 유형 분류 함수
+# 4. 미시행 유형 분류 함수 (항목명 축소)
 def classify_fail_reason(row):
     p1 = row["1차확인_성공"]
     p2 = row["2차확인_성공"]
     if not p1 and p2:
-        return "1차 개방형 확인 시행 안함"
+        return "1차 미시행"
     elif p1 and not p2:
-        return "2차 등록번호 확인 시행 안함"
+        return "2차 미시행"
     else:
-        return "1,2차 정확한 환자확인 시행 안함"
+        return "1,2차 미시행"
 
 
 def process_excel(df_raw):
@@ -569,9 +569,9 @@ if uploaded_file is not None:
 
             # 색상 매핑
             color_map = {
-                "1차 개방형 확인 시행 안함": "#ff9999",
-                "2차 등록번호 확인 시행 안함": "#ffcc99",
-                "1,2차 정확한 환자확인 시행 안함": "#e06666",
+                "1차 미시행": "#ff9999",
+                "2차 미시행": "#ffcc99",
+                "1,2차 미시행": "#e06666",
             }
 
             fig_pie = px.pie(
@@ -581,14 +581,16 @@ if uploaded_file is not None:
                 title="<b>정확한 환자확인 미시행 사유 비율</b>",
                 color="미시행_유형",
                 color_discrete_map=color_map,
-                hole=0.3,  # 도넛 형태의 깔끔한 원그래프
+                hole=0.3,
             )
 
+            # insidetextorientation='horizontal' 추가로 글자를 가로로 고정
             fig_pie.update_traces(
                 textposition="inside",
                 textinfo="label+percent+value",
                 texttemplate="<b>%{label}</b><br>%{value}건 (%{percent})",
                 insidetextfont=dict(size=13, color="black"),
+                insidetextorientation="horizontal",
             )
 
             fig_pie.update_layout(
