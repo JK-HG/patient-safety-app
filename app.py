@@ -305,11 +305,12 @@ if uploaded_file is not None:
         categories = ["1차 환자성명 확인", "2차 등록번호 확인", "정확한 환자확인"]
         fig_total = go.Figure()
 
+        # 분기별 고유 팔레트 (시행, 미시행) - 명확한 대비를 위한 팔레트 재설정
         q_colors = {
-            "1분기": ("#2b5c8f", "#d9534f"),
-            "2분기": ("#2e7d32", "#f0ad4e"),
-            "3분기": ("#00838f", "#e65100"),
-            "4분기": ("#6a1b9a", "#ad1457"),
+            "1분기": ("#1E3A8A", "#EF4444"),  # 로얄 딥블루 / 레드
+            "2분기": ("#15803D", "#F59E0B"),  # 에메랄드 그린 / 앰버 노랑
+            "3분기": ("#C2410C", "#991B1B"),  # 따뜻한 코랄 오렌지 / 버건디
+            "4분기": ("#6B21A8", "#DB2777"),  # 딥 퍼플 / 마젠타 핑크
         }
 
         for q_name, q_val in ordered_quarter_data.items():
@@ -322,7 +323,7 @@ if uploaded_file is not None:
             p2_pct = round(p2 / tot * 100, 1) if tot > 0 else 0
             fin_pct = round(fin / tot * 100, 1) if tot > 0 else 0
 
-            pass_color, fail_color = q_colors.get(q_name, ("#2b5c8f", "#d9534f"))
+            pass_color, fail_color = q_colors.get(q_name, ("#1E3A8A", "#EF4444"))
 
             # 시행 막대
             fig_total.add_trace(
@@ -342,7 +343,7 @@ if uploaded_file is not None:
                 )
             )
 
-            # 미시행 막대 (글자 크기 고정을 위해 상단/내부 텍스트 제어)
+            # 미시행 막대
             fail_p1, fail_p2, fail_fin = tot - p1, tot - p2, tot - fin
             
             fig_total.add_trace(
@@ -355,8 +356,8 @@ if uploaded_file is not None:
                         f"<b>미시행: {fail_p2}명</b>" if fail_p2 > 0 else "",
                         f"<b>미시행: {fail_fin}명</b>" if fail_fin > 0 else "",
                     ],
-                    textposition="outside",  # 미시행 수치가 작아도 잘 보이도록 막대 위에 선명히 표시
-                    outsidetextfont=dict(size=12, color="#d9534f"),
+                    textposition="outside",
+                    outsidetextfont=dict(size=12, color=fail_color),
                     marker_color=fail_color,
                     offsetgroup=q_name,
                     base=[p1, p2, fin],
@@ -374,13 +375,13 @@ if uploaded_file is not None:
             ),
             yaxis=dict(
                 title="인원 수 (명)",
-                range=[200, max_total * 1.08] # y축 200부터 시작하여 대비 극대화
+                range=[200, max_total * 1.08]
             ),
             bargap=0.3,
             bargroupgap=0.08,
             height=580,
             margin=dict(l=20, r=20, t=50, b=20),
-            uniformtext_minsize=12,  # 글자 크기 최솟값을 12pt로 고정하여 찌그러짐 방지
+            uniformtext_minsize=12,
             uniformtext_mode="show",
             legend=dict(
                 orientation="h",
