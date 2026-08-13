@@ -366,7 +366,6 @@ if uploaded_file is not None:
         max_total = max([q["total"] for q in ordered_quarter_data.values()])
         num_q = len(ordered_quarter_data)
 
-        # 선택된 분기 개수에 맞춰 막대 두께와 레이아웃 폭 자동 조정
         if num_q == 1:
             dynamic_bargap = 0.62
             col_ratio = [1.1, 2.8, 1.1]
@@ -380,7 +379,7 @@ if uploaded_file is not None:
         fig_total.update_layout(
             barmode="group",
             title=dict(
-                text="<b>[총괄] 항목별 시행/미시행 인원 분기별 비교</b>",
+                text="<b>정확한 환자 확인율</b>",  # 이미지 반영 수정
                 x=0.5,
                 xanchor="center"
             ),
@@ -390,7 +389,7 @@ if uploaded_file is not None:
             ),
             yaxis=dict(
                 title="인원 수 (명)",
-                range=[0, max_total * 1.15]  # Y축 0부터 시작하여 전체 비율이 안정적으로 보이도록 설정
+                range=[0, max_total * 1.15]
             ),
             bargap=dynamic_bargap,
             bargroupgap=0.08,
@@ -416,7 +415,7 @@ if uploaded_file is not None:
         st.divider()
 
         # -------------------------------------------------------------
-        # 2. 직군별 정확한 환자 확인 (순서: 의사, 간호, 진료지원, 행정)
+        # 2. 직군별 정확한 환자 확인
         # -------------------------------------------------------------
         st.subheader("👥 2) 직군별 정확한 환자 확인")
         raw_job = calc_stats_raw(df, "직군")
@@ -472,7 +471,7 @@ if uploaded_file is not None:
         fig_job.update_layout(
             barmode="stack",
             title=dict(
-                text="<b>직군별 환자확인 이행 비율 (1차 / 2차 / 정확한 환자확인율)</b>",
+                text="<b>직군별 정확한 환자 확인율</b>",  # 이미지 반영 수정
                 x=0.5,
                 xanchor="center"
             ),
@@ -497,7 +496,7 @@ if uploaded_file is not None:
         st.divider()
 
         # -------------------------------------------------------------
-        # 3. 상황별 정확한 환자 확인 (순서: 입원/외래진료/수납, 투약, 검사 및 검체채취, 처치/수술 및 수혈, 물리치료)
+        # 3. 상황별 정확한 환자 확인
         # -------------------------------------------------------------
         st.subheader("📋 3) 상황별 정확한 환자 확인")
         raw_context = calc_stats_raw(df, "상황")
@@ -563,7 +562,7 @@ if uploaded_file is not None:
         fig_context.update_layout(
             barmode="stack",
             title=dict(
-                text="<b>상황별 환자확인 이행 비율 (1차 / 2차 / 정확한 환자확인율)</b>",
+                text="<b>상황별 정확한 환자 확인율</b>",  # 이미지 반영 수정
                 x=0.5,
                 xanchor="center"
             ),
@@ -648,6 +647,13 @@ if uploaded_file is not None:
             c for c in valid_categories if c in raw_dept_sub["부서_대분류"].unique()
         ]
 
+        # 탭별 타이틀 이미지 기준 매핑
+        dept_title_map = {
+            "진료과": "진료과별 정확한 환자확인",
+            "간호부": "간호부 정확한 환자확인",
+            "진료지원 및 행정": "진료지원 및 행정 정확한 환자확인",
+        }
+
         tabs = st.tabs(dept_categories)
         for tab, cat in zip(tabs, dept_categories):
             with tab:
@@ -689,12 +695,14 @@ if uploaded_file is not None:
                         drop=True
                     )
 
+                chart_title = dept_title_map.get(cat, f"{cat} 정확한 환자확인")
+
                 fig_dept_sub = px.bar(
                     sub_df,
                     x="부서_소분류",
                     y="정확한확인_비율",
                     text=sub_df["정확한확인_비율"].astype(str) + "%",
-                    title=f"<b>[{cat}] 세부 부서별 정확한 환자확인율 (%)</b>",
+                    title=f"<b>{chart_title}</b>",  # 이미지 반영 수정
                     labels={
                         "부서_소분류": "세부 부서",
                         "정확한확인_비율": "이행률 (%)",
@@ -747,7 +755,7 @@ if uploaded_file is not None:
                 fail_summary,
                 values="건수",
                 names="미시행_유형",
-                title="<b>정확한 환자확인 미시행 사유 비율</b>",
+                title="<b>정확한 환자확인 미시행 사유</b>",  # 이미지 반영 수정
                 color="미시행_유형",
                 color_discrete_map=color_map,
                 hole=0.3,
