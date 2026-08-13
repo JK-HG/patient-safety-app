@@ -305,12 +305,11 @@ if uploaded_file is not None:
         categories = ["1차 환자성명 확인", "2차 등록번호 확인", "정확한 환자확인"]
         fig_total = go.Figure()
 
-        # 분기별 고유 팔레트 (시행, 미시행) - 명확한 대비를 위한 팔레트 재설정
         q_colors = {
-            "1분기": ("#1E3A8A", "#EF4444"),  # 로얄 딥블루 / 레드
-            "2분기": ("#15803D", "#F59E0B"),  # 에메랄드 그린 / 앰버 노랑
-            "3분기": ("#C2410C", "#991B1B"),  # 따뜻한 코랄 오렌지 / 버건디
-            "4분기": ("#6B21A8", "#DB2777"),  # 딥 퍼플 / 마젠타 핑크
+            "1분기": ("#1E3A8A", "#EF4444"),
+            "2분기": ("#15803D", "#F59E0B"),
+            "3분기": ("#C2410C", "#991B1B"),
+            "4분기": ("#6B21A8", "#DB2777"),
         }
 
         for q_name, q_val in ordered_quarter_data.items():
@@ -325,7 +324,7 @@ if uploaded_file is not None:
 
             pass_color, fail_color = q_colors.get(q_name, ("#1E3A8A", "#EF4444"))
 
-            # 시행 막대
+            # 시행 막대 (insidetextangle=0 설정으로 100%시 회전 방지)
             fig_total.add_trace(
                 go.Bar(
                     name=f"{q_name} (시행)",
@@ -337,13 +336,14 @@ if uploaded_file is not None:
                         f"<b>{fin}명</b><br>({fin_pct}%)",
                     ],
                     textposition="inside",
-                    insidetextfont=dict(size=13, color="white"),
+                    insidetextfont=dict(size=12, color="white"),
+                    insidetextangle=0,
                     marker_color=pass_color,
                     offsetgroup=q_name,
                 )
             )
 
-            # 미시행 막대
+            # 미시행 막대 (텍스트 폭 줄임 및 세로 고정으로 겹침 완전 해결)
             fail_p1, fail_p2, fail_fin = tot - p1, tot - p2, tot - fin
             
             fig_total.add_trace(
@@ -352,12 +352,12 @@ if uploaded_file is not None:
                     x=categories,
                     y=[fail_p1, fail_p2, fail_fin],
                     text=[
-                        f"<b>미시행: {fail_p1}명</b>" if fail_p1 > 0 else "",
-                        f"<b>미시행: {fail_p2}명</b>" if fail_p2 > 0 else "",
-                        f"<b>미시행: {fail_fin}명</b>" if fail_fin > 0 else "",
+                        f"<b>{fail_p1}명</b>" if fail_p1 > 0 else "",
+                        f"<b>{fail_p2}명</b>" if fail_p2 > 0 else "",
+                        f"<b>{fail_fin}명</b>" if fail_fin > 0 else "",
                     ],
                     textposition="outside",
-                    outsidetextfont=dict(size=12, color=fail_color),
+                    outsidetextfont=dict(size=11, color=fail_color),
                     marker_color=fail_color,
                     offsetgroup=q_name,
                     base=[p1, p2, fin],
@@ -377,12 +377,10 @@ if uploaded_file is not None:
                 title="인원 수 (명)",
                 range=[200, max_total * 1.08]
             ),
-            bargap=0.3,
+            bargap=0.25,
             bargroupgap=0.08,
             height=580,
             margin=dict(l=20, r=20, t=50, b=20),
-            uniformtext_minsize=12,
-            uniformtext_mode="show",
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
@@ -426,6 +424,7 @@ if uploaded_file is not None:
                     f"1차: {val}%" for val in raw_job_filtered["1차확인_비율"]
                 ],
                 textposition="inside",
+                insidetextangle=0,
                 marker_color="#3366cc",
             )
         )
@@ -438,6 +437,7 @@ if uploaded_file is not None:
                     f"2차: {val}%" for val in raw_job_filtered["2차확인_비율"]
                 ],
                 textposition="inside",
+                insidetextangle=0,
                 marker_color="#109618",
             )
         )
@@ -505,6 +505,7 @@ if uploaded_file is not None:
                     for val in raw_context_filtered["1차확인_비율"]
                 ],
                 textposition="inside",
+                insidetextangle=0,
                 marker_color="#3366cc",
             )
         )
@@ -518,6 +519,7 @@ if uploaded_file is not None:
                     for val in raw_context_filtered["2차확인_비율"]
                 ],
                 textposition="inside",
+                insidetextangle=0,
                 marker_color="#109618",
             )
         )
