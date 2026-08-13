@@ -96,7 +96,6 @@ def map_dept_detailed(dept, job):
 
     # 규칙 2: 직종이 '간호사'인 경우 -> '2. 간호부'
     if job_str == "간호사":
-        # 화상외과, 성형외과, 재활의학과, 내과, 소아청소년과, 외래 소속 간호사는 모두 '외래'로 합침
         if dept_clean in outpatient_depts:
             return "2. 간호부", "외래"
         else:
@@ -110,6 +109,18 @@ def map_dept_detailed(dept, job):
         return "2. 간호부", "외래"
 
     return "4. 기타", dept_clean if dept_clean else "기타"
+
+
+# 4. 미시행 유형 분류 함수
+def classify_fail_reason(row):
+    p1 = row["1차확인_성공"]
+    p2 = row["2차확인_성공"]
+    if not p1 and p2:
+        return "1차 개방형 확인 시행 안함"
+    elif p1 and not p2:
+        return "2차 등록번호 확인 시행 안함"
+    else:
+        return "1,2차 정확한 환자확인 시행 안함"
 
 
 def process_excel(df_raw):
@@ -133,7 +144,6 @@ def process_excel(df_raw):
 
     raw_dept = df["상세부서명"].fillna(df["부서"])
 
-    # 부서명과 직종을 함께 조합하여 대분류/소분류 산출
     dept_res = [
         map_dept_detailed(d, j) for d, j in zip(raw_dept, df["직종"])
     ]
@@ -535,25 +545,87 @@ if uploaded_file is not None:
                 with col_m4:
                     st.plotly_chart(fig_dept_sub, use_container_width=True)
 
-        # 미시행 목록
+        # -------------------------------------------------------------
+        # 5. 미시행 분석 및 상세 목록
+        # -------------------------------------------------------------
         st.divider()
-        st.subheader("⚠️ 정확한 환자확인 미시행 내역 (1차 또는 2차 미시행)")
-        fail_df = df[~df["정확한확인_성공"]][
-            [
-                "NO",
-                "부서_대분류",
-                "부서_소분류",
-                "직종",
-                "이름",
-                "환자확인사항",
-                "이름확인",
-                "등록번호 확인",
-                "생년월일 확인",
-                "미시행 사유 또는 기타사항",
-            ]
-        ]
+        st.subheader("⚠️ 정확한 환자확인 미시행 내역 및 사유 분석")
+
+        fail_df = df[~df["정확한확인_성공"]].copy()
+
         if len(fail_df) > 0:
-            st.dataframe(fail_df, use_container_width=True)
+            # 미시행 원인 분류
+            fail_df["미시행_유형"] = fail_df.apply(
+                classify_fail_reason, axis=1
+            )
+
+            # 원그래프 생성을 위한 통계
+            fail_summary = (
+                fail_df["미시행_유형"]
+                .value_counts()
+                .reset_index()
+            )
+            fail_summary.columns = ["미시행_유형", "건수"]
+
+            # 색상 매핑
+            color_map = {
+                "1차 개방형 확인 시행 안함": "#ff9999",
+                "2차 등록번호 확인 시행 안함": "#ffcc99",
+                "1,2차 정확한 환자확인 시행 안함": "#e06666",
+            }
+
+            fig_pie = px.pie(
+                fail_summary,
+                values="건수",
+                names="미시행_유형",
+                title="<b>정확한 환자확인 미시행 사유 비율</b>",
+                color="미시행_유형",
+                color_discrete_map=color_map,
+                hole=0.3,  # 도넛 형태의 깔끔한 원그래프
+            )
+
+            fig_pie.update_traces(
+                textposition="inside",
+                textinfo="label+percent+value",
+                texttemplate="<b>%{label}</b><br>%{value}건 (%{percent})",
+                insidetextfont=dict(size=13, color="black"),
+            )
+
+            fig_pie.update_layout(
+                height=450,
+                margin=dict(l=20, r=20, t=50, b=20),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=-0.15,
+                    xanchor="center",
+                    x=0.5,
+                ),
+            )
+
+            col_pie_l, col_pie_m, col_pie_r = st.columns([1, 3, 1])
+            with col_pie_m:
+                st.plotly_chart(fig_pie, use_container_width=True)
+
+            # 미시행 상세 목록 표
+            st.markdown("#### 📋 미시행 상세 목록")
+            show_fail_df = fail_df[
+                [
+                    "NO",
+                    "부서_대분류",
+                    "부서_소분류",
+                    "직종",
+                    "이름",
+                    "환자확인사항",
+                    "이름확인",
+                    "등록번호 확인",
+                    "생년월일 확인",
+                    "미시행_유형",
+                    "미시행 사유 또는 기타사항",
+                ]
+            ]
+            st.dataframe(show_fail_df, use_container_width=True)
+
         else:
             st.success("🎉 모든 건에서 정확한 환자확인이 수행되었습니다!")
 
