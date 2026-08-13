@@ -217,7 +217,6 @@ if uploaded_file is not None:
         # -------------------------------------------------------------
         st.subheader("📊 1. 모니터링 총괄 현황")
 
-        # [1단계] 현재 업로드 데이터 분기 설정
         col_q_curr, col_q_cmp = st.columns([1, 2])
         with col_q_curr:
             current_quarter = st.selectbox(
@@ -226,7 +225,6 @@ if uploaded_file is not None:
                 index=0,
             )
 
-        # 현재 엑셀 실데이터 상단 메트릭 요약 표시
         c1, c2, c3, c4 = st.columns(4)
         c1.metric(f"총 점검 건수 ({current_quarter})", f"{total_count} 건")
         c2.metric("1차 이름확인 건수", f"{p1_count} 건")
@@ -240,7 +238,6 @@ if uploaded_file is not None:
         all_quarters_list = ["1분기", "2분기", "3분기", "4분기"]
         other_quarters_options = [q for q in all_quarters_list if q != current_quarter]
 
-        # [2단계] 비교할 타 분기 수치 입력창
         with st.expander(f"⚙️ **다른 분기 수치 추가 및 비교 설정**", expanded=False):
             st.info("비교하고자 하는 타 분기를 선택하고 수치를 입력하세요. 입력한 분기들이 그래프에 함께 표시됩니다.")
             selected_other_quarters = st.multiselect(
@@ -250,7 +247,6 @@ if uploaded_file is not None:
             )
 
             quarter_data = {}
-            # 현재 엑셀 데이터 기본 등록
             quarter_data[current_quarter] = {
                 "total": total_count,
                 "p1": p1_count,
@@ -265,14 +261,14 @@ if uploaded_file is not None:
                         st.markdown(f"##### **[{q_name}] 수치 입력**")
                         q_total = st.number_input(
                             f"총 점검 건수 ({q_name})",
-                            value=100,
+                            value=300,
                             min_value=1,
                             step=1,
                             key=f"tot_{q_name}",
                         )
                         q_p1 = st.number_input(
                             f"1차 성명 확인 ({q_name})",
-                            value=90,
+                            value=290,
                             min_value=0,
                             max_value=q_total,
                             step=1,
@@ -280,7 +276,7 @@ if uploaded_file is not None:
                         )
                         q_p2 = st.number_input(
                             f"2차 등록번호 확인 ({q_name})",
-                            value=90,
+                            value=285,
                             min_value=0,
                             max_value=q_total,
                             step=1,
@@ -288,7 +284,7 @@ if uploaded_file is not None:
                         )
                         q_final = st.number_input(
                             f"정확한 환자확인 ({q_name})",
-                            value=85,
+                            value=280,
                             min_value=0,
                             max_value=q_total,
                             step=1,
@@ -302,7 +298,6 @@ if uploaded_file is not None:
                             "final": q_final,
                         }
 
-        # 정렬된 분기 순서대로 차트 그리기 (1분기 -> 2분기 -> 3분기 -> 4분기)
         ordered_quarter_data = {
             q: quarter_data[q] for q in all_quarters_list if q in quarter_data
         }
@@ -310,7 +305,6 @@ if uploaded_file is not None:
         categories = ["1차 환자성명 확인", "2차 등록번호 확인", "정확한 환자확인"]
         fig_total = go.Figure()
 
-        # 분기별 고유 색상 설정 (시행, 미시행)
         q_colors = {
             "1분기": ("#2b5c8f", "#d9534f"),
             "2분기": ("#2e7d32", "#f0ad4e"),
@@ -337,9 +331,9 @@ if uploaded_file is not None:
                     x=categories,
                     y=[p1, p2, fin],
                     text=[
-                        f"[{q_name}]<br>시행: {p1}명 ({p1_pct}%)",
-                        f"[{q_name}]<br>시행: {p2}명 ({p2_pct}%)",
-                        f"[{q_name}]<br>시행: {fin}명 ({fin_pct}%)",
+                        f"[{q_name}]<br>시행: {p1}명<br>({p1_pct}%)",
+                        f"[{q_name}]<br>시행: {p2}명<br>({p2_pct}%)",
+                        f"[{q_name}]<br>시행: {fin}명<br>({fin_pct}%)",
                     ],
                     textposition="inside",
                     marker_color=pass_color,
@@ -354,9 +348,9 @@ if uploaded_file is not None:
                     x=categories,
                     y=[tot - p1, tot - p2, tot - fin],
                     text=[
-                        f"미시행: {tot - p1}명",
-                        f"미시행: {tot - p2}명",
-                        f"미시행: {tot - fin}명",
+                        f"미시행:<br>{tot - p1}명",
+                        f"미시행:<br>{tot - p2}명",
+                        f"미시행:<br>{tot - fin}명",
                     ],
                     textposition="inside",
                     marker_color=fail_color,
@@ -371,22 +365,23 @@ if uploaded_file is not None:
             barmode="group",
             title="<b>[총괄] 항목별 시행/미시행 인원 분기별 비교</b>",
             xaxis=dict(tickfont=dict(color="black", size=13)),
-            yaxis=dict(title="인원 수 (명)", range=[0, max_total * 1.18]),
-            bargap=0.25,
-            bargroupgap=0.08,
-            height=520,
-            margin=dict(l=20, r=20, t=60, b=20),
+            yaxis=dict(title="인원 수 (명)", range=[200, max_total * 1.05]),  # 세로축 최소값을 200으로 설정
+            bargap=0.35,
+            bargroupgap=0.1,
+            height=580,  # 세로 비율을 늘려 직관적인 비율 적용
+            margin=dict(l=20, r=20, t=50, b=20),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.22,
+                y=-0.25,
                 xanchor="center",
                 x=0.5,
             ),
         )
 
-        col_left, col_mid, col_right = st.columns([0.5, 4, 0.5])
-        with col_mid:
+        # 다른 그래프들과 동일한 가로/세로 비율 조정을 위해 컬럼 레이아웃 적용
+        col_l1, col_m1, col_r1 = st.columns([1, 3, 1])
+        with col_m1:
             st.plotly_chart(fig_total, use_container_width=True)
 
         st.divider()
