@@ -1,3 +1,4 @@
+import io
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -161,14 +162,14 @@ def calc_stats_raw(df, group_col):
     )
 
     stats["1차확인_비율"] = (
-        (stats["차1확인_성공"] / stats["전체건수"] * 100).round(1)
-    )
+        stats["차1확인_성공"] / stats["전체건수"] * 100
+    ).round(1)
     stats["2차확인_비율"] = (
-        (stats["차2확인_성공"] / stats["전체건수"] * 100).round(1)
-    )
+        stats["차2확인_성공"] / stats["전체건수"] * 100
+    ).round(1)
     stats["정확한확인_비율"] = (
-        (stats["정확한확인_성공"] / stats["전체건수"] * 100).round(1)
-    )
+        stats["정확한확인_성공"] / stats["전체건수"] * 100
+    ).round(1)
 
     return stats
 
@@ -236,10 +237,14 @@ if uploaded_file is not None:
         )
 
         all_quarters_list = ["1분기", "2분기", "3분기", "4분기"]
-        other_quarters_options = [q for q in all_quarters_list if q != current_quarter]
+        other_quarters_options = [
+            q for q in all_quarters_list if q != current_quarter
+        ]
 
         with st.expander(f"⚙️ **다른 분기 수치 추가 및 비교 설정**", expanded=False):
-            st.info("비교하고자 하는 타 분기를 선택하고 수치를 입력하세요. 입력한 분기들이 그래프에 함께 표시됩니다.")
+            st.info(
+                "비교하고자 하는 타 분기를 선택하고 수치를 입력하세요. 입력한 분기들이 그래프에 함께 표시됩니다."
+            )
             selected_other_quarters = st.multiselect(
                 "비교할 타 분기를 선택하세요:",
                 other_quarters_options,
@@ -322,7 +327,9 @@ if uploaded_file is not None:
             p2_pct = round(p2 / tot * 100, 1) if tot > 0 else 0
             fin_pct = round(fin / tot * 100, 1) if tot > 0 else 0
 
-            pass_color, fail_color = q_colors.get(q_name, ("#1E3A8A", "#EF4444"))
+            pass_color, fail_color = q_colors.get(
+                q_name, ("#1E3A8A", "#EF4444")
+            )
 
             fig_total.add_trace(
                 go.Bar(
@@ -382,31 +389,33 @@ if uploaded_file is not None:
                 y=0.96,
                 xanchor="center",
                 yanchor="top",
-                font=dict(size=28, color="black")
+                font=dict(size=28, color="black"),
             ),
             xaxis=dict(
                 tickfont=dict(color="black", size=20, family="sans-serif"),
-                title=None
+                title=None,
             ),
             yaxis=dict(
                 title=None,
                 tickfont=dict(size=18, color="black"),
-                range=[0, max_total * 1.20]
+                range=[0, max_total * 1.20],
             ),
             bargap=dynamic_bargap,
             bargroupgap=0.08,
-            height=680,
-            margin=dict(l=80, r=60, t=100, b=130),
+            height=720,  # 전체 높이 약간 확장
+            margin=dict(
+                l=80, r=60, t=100, b=160
+            ),  # 하단 여백(b)을 늘려 범례 공간 확보
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.20,
+                y=-0.32,  # 범례 위치를 아래로 더 내림
                 xanchor="center",
                 x=0.5,
-                font=dict(size=18),
-                itemwidth=35,
-                entrywidth=120,
-                entrywidthmode="pixels"
+                font=dict(size=14),  # 글씨 크기를 살짝 줄여서 1줄로 정돈
+                itemwidth=30,
+                entrywidth=100,  # 항목 간 너비 조절로 한 줄에 모이도록 유도
+                entrywidthmode="pixels",
             ),
         )
 
@@ -481,13 +490,13 @@ if uploaded_file is not None:
                 y=0.96,
                 xanchor="center",
                 yanchor="top",
-                font=dict(size=28, color="black")
+                font=dict(size=28, color="black"),
             ),
             xaxis=dict(tickfont=dict(color="black", size=20)),
             yaxis=dict(
                 title=None,
                 tickfont=dict(size=18, color="black"),
-                range=[0, 235]
+                range=[0, 235],
             ),
             bargap=0.45,
             height=660,
@@ -498,7 +507,7 @@ if uploaded_file is not None:
                 y=-0.20,
                 xanchor="center",
                 x=0.5,
-                font=dict(size=18)
+                font=dict(size=18),
             ),
         )
 
@@ -583,13 +592,13 @@ if uploaded_file is not None:
                 y=0.96,
                 xanchor="center",
                 yanchor="top",
-                font=dict(size=28, color="black")
+                font=dict(size=28, color="black"),
             ),
             xaxis=dict(tickfont=dict(color="black", size=20)),
             yaxis=dict(
                 title=None,
                 tickfont=dict(size=18, color="black"),
-                range=[0, 235]
+                range=[0, 235],
             ),
             bargap=0.4,
             height=660,
@@ -600,7 +609,7 @@ if uploaded_file is not None:
                 y=-0.20,
                 xanchor="center",
                 x=0.5,
-                font=dict(size=18)
+                font=dict(size=18),
             ),
         )
 
@@ -627,14 +636,14 @@ if uploaded_file is not None:
             .reset_index()
         )
         raw_dept_sub["1차확인_비율"] = (
-            (raw_dept_sub["차1확인_성공"] / raw_dept_sub["전체건수"] * 100).round(1)
-        )
+            raw_dept_sub["차1확인_성공"] / raw_dept_sub["전체건수"] * 100
+        ).round(1)
         raw_dept_sub["2차확인_비율"] = (
-            (raw_dept_sub["차2확인_성공"] / raw_dept_sub["전체건수"] * 100).round(1)
-        )
+            raw_dept_sub["차2확인_성공"] / raw_dept_sub["전체건수"] * 100
+        ).round(1)
         raw_dept_sub["정확한확인_비율"] = (
-            (raw_dept_sub["정확한확인_성공"] / raw_dept_sub["전체건수"] * 100).round(1)
-        )
+            raw_dept_sub["정확한확인_성공"] / raw_dept_sub["전체건수"] * 100
+        ).round(1)
 
         res_dept_df = pd.DataFrame()
         res_dept_df["부서 대분류"] = raw_dept_sub["부서_대분류"]
@@ -681,18 +690,30 @@ if uploaded_file is not None:
         tabs = st.tabs(dept_categories)
         for tab, cat in zip(tabs, dept_categories):
             with tab:
-                sub_df = raw_dept_sub[raw_dept_sub["부서_대분류"] == cat].copy()
+                sub_df = raw_dept_sub[
+                    raw_dept_sub["부서_대분류"] == cat
+                ].copy()
 
                 sub_df = sub_df[
                     ~sub_df["부서_소분류"].str.lower().isin(["기타", "none", "nan"])
                 ].copy()
 
                 if cat == "진료과":
-                    custom_order = ["화상외과", "성형외과", "재활의학과", "내과", "소아청소년과"]
+                    custom_order = [
+                        "화상외과",
+                        "성형외과",
+                        "재활의학과",
+                        "내과",
+                        "소아청소년과",
+                    ]
                     sub_df["부서_소분류"] = pd.Categorical(
-                        sub_df["부서_소분류"], categories=custom_order, ordered=True
+                        sub_df["부서_소분류"],
+                        categories=custom_order,
+                        ordered=True,
                     )
-                    sub_df = sub_df.sort_values("부서_소분류").reset_index(drop=True)
+                    sub_df = sub_df.sort_values("부서_소분류").reset_index(
+                        drop=True
+                    )
                 elif cat == "간호부":
                     custom_order = [
                         "외래",
@@ -705,9 +726,13 @@ if uploaded_file is not None:
                         "화상중환자실",
                     ]
                     sub_df["부서_소분류"] = pd.Categorical(
-                        sub_df["부서_소분류"], categories=custom_order, ordered=True
+                        sub_df["부서_소분류"],
+                        categories=custom_order,
+                        ordered=True,
                     )
-                    sub_df = sub_df.sort_values("부서_소분류").reset_index(drop=True)
+                    sub_df = sub_df.sort_values("부서_소분류").reset_index(
+                        drop=True
+                    )
                 elif cat == "진료지원 및 행정":
                     custom_order = ["물리치료실", "영상의학과", "수납/접수"]
                     sub_df["부서_소분류"] = pd.Categorical(
@@ -735,7 +760,7 @@ if uploaded_file is not None:
                 )
                 fig_dept_sub.update_traces(
                     textposition="outside",
-                    textfont=dict(size=20, color="black")
+                    textfont=dict(size=20, color="black"),
                 )
                 fig_dept_sub.update_layout(
                     title=dict(
@@ -743,17 +768,16 @@ if uploaded_file is not None:
                         y=0.96,
                         xanchor="center",
                         yanchor="top",
-                        font=dict(size=28, color="black")
+                        font=dict(size=28, color="black"),
                     ),
                     xaxis=dict(
-                        title=None,
-                        tickfont=dict(color="black", size=20)
+                        title=None, tickfont=dict(color="black", size=20)
                     ),
                     yaxis=dict(
                         title=None,
                         tickfont=dict(size=18, color="black"),
                         range=[0, 115],
-                        ticksuffix="%"
+                        ticksuffix="%",
                     ),
                     bargap=0.5,
                     height=580,
@@ -763,7 +787,9 @@ if uploaded_file is not None:
                 col_l4, col_m4, col_r4 = st.columns([0.5, 4, 0.5])
                 with col_m4:
                     with st.container(border=True):
-                        st.plotly_chart(fig_dept_sub, use_container_width=True)
+                        st.plotly_chart(
+                            fig_dept_sub, use_container_width=True
+                        )
 
         # -------------------------------------------------------------
         # 5. 미시행 분석 및 상세 목록
@@ -779,9 +805,7 @@ if uploaded_file is not None:
             )
 
             fail_summary = (
-                fail_df["미시행_유형"]
-                .value_counts()
-                .reset_index()
+                fail_df["미시행_유형"].value_counts().reset_index()
             )
             fail_summary.columns = ["미시행_유형", "건수"]
 
@@ -815,7 +839,7 @@ if uploaded_file is not None:
                     y=0.96,
                     xanchor="center",
                     yanchor="top",
-                    font=dict(size=28, color="black")
+                    font=dict(size=28, color="black"),
                 ),
                 height=580,
                 margin=dict(l=80, r=60, t=100, b=130),
@@ -825,7 +849,7 @@ if uploaded_file is not None:
                     y=-0.20,
                     xanchor="center",
                     x=0.5,
-                    font=dict(size=18)
+                    font=dict(size=18),
                 ),
             )
 
@@ -853,13 +877,13 @@ if uploaded_file is not None:
             st.dataframe(show_fail_df, use_container_width=True)
 
         else:
-            st.success("🎉 모든 건에서 정확한 환자확인이 수행되었습니다!")# -------------------------------------------------------------
+            st.success("🎉 모든 건에서 정확한 환자확인이 수행되었습니다!")
+
+        # -------------------------------------------------------------
         # 결과 엑셀 파일 다운로드 기능 (openpyxl 엔진 사용)
         # -------------------------------------------------------------
         st.divider()
         st.subheader("📥 결과 보고서 다운로드")
-
-        import io
 
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
