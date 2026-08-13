@@ -854,6 +854,33 @@ if uploaded_file is not None:
 
         else:
             st.success("🎉 모든 건에서 정확한 환자확인이 수행되었습니다!")
+# -------------------------------------------------------------
+        # [신규] 결과 엑셀 파일 다운로드 기능
+        # -------------------------------------------------------------
+        st.divider()
+        st.subheader("📥 결과 보고서 다운로드")
+        
+        # 다운로드할 데이터를 메모리 상에서 엑셀 버퍼로 생성
+        import io
+        
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            # 주요 분석 결과 시트 저장
+            raw_job.to_excel(writer, sheet_name='직군별_분석', index=False)
+            raw_context.to_excel(writer, sheet_name='상황별_분석', index=False)
+            raw_dept_sub.to_excel(writer, sheet_name='부서별_분석', index=False)
+            if len(fail_df) > 0:
+                fail_df.to_excel(writer, sheet_name='미시행_상세내역', index=False)
+        
+        st.download_button(
+            label="📊 분석 결과 엑셀로 다운로드하기",
+            data=buffer.getvalue(),
+            file_name=f"환자확인_분석결과_{current_quarter}.xlsx",
+            mime="application/vnd.ms-excel"
+        )
+        st.info("버튼을 누르면 분석된 통계 자료와 미시행 내역이 담긴 엑셀 파일을 내려받을 수 있습니다.")
 
+    except Exception as e:
+        st.error(f"엑셀 분석 중 오류가 발생했습니다: {e}")
     except Exception as e:
         st.error(f"엑셀 분석 중 오류가 발생했습니다: {e}")
