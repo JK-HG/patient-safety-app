@@ -30,21 +30,34 @@ def map_job(job):
 
 
 def map_context(item):
-    """환자확인사항 분류 매핑"""
+    """요청하신 지정 카테고리로 상황 분류"""
     if pd.isna(item):
-        return "기타"
+        return "6. 그 외 항목"
+
     item = str(item).strip()
-    if item.startswith("기 타 - "):
-        return item.replace("기 타 - ", "")
-    elif "검사 시행 전" in item:
-        return "검사 및 검체채취"
-    elif "처치 및 시술" in item or "혈액제제" in item:
-        return "처치/수술 및 수혈"
-    elif "의약품 투여" in item:
-        return "투약"
-    elif "진료 전" in item:
-        return "입원/외래진료/수납"
-    return item
+
+    # 1. 입원/외래진료/수납
+    if item in ["진료 전", "기 타 - 수납 시", "기 타 - 입원 시"]:
+        return "1. 입원/외래진료/수납"
+    # 2. 투약
+    elif item == "의약품 투여 전":
+        return "2. 투약"
+    # 3. 검사/검체 채취
+    elif item.startswith("검사 시행 전"):
+        return "3. 검사/검체 채취"
+    # 4. 처치/수술/수혈
+    elif (
+        item.startswith("처치 및 시술 전")
+        or item.startswith("혈액제제 투여 전")
+        or "수술전" in item
+    ):
+        return "4. 처치/수술/수혈"
+    # 5. 물리치료
+    elif item == "기 타 - 물리치료":
+        return "5. 물리치료"
+    # 6. 그 외 항목
+    else:
+        return "6. 그 외 항목"
 
 
 def process_excel(df_raw):
@@ -89,6 +102,10 @@ def calc_stats(df, group_col):
         )
         .reset_index()
     )
+
+    # 순서 정렬 (상황 컬럼일 경우 지정된 번호순 정렬)
+    if group_col == "상황":
+        stats = stats.sort_values(by=group_col).reset_index(drop=True)
 
     stats["1차확인 비율"] = (
         (stats["차1확인_성공"] / stats["전체건수"] * 100).round(1).astype(str) + "%"
