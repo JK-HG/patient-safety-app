@@ -213,7 +213,7 @@ if uploaded_file is not None:
         )
 
         # -------------------------------------------------------------
-        # 1. 모니터링 총괄 현황 (현재 엑셀 분기 설정 + 타 분기 비교)
+        # 1. 모니터링 총괄 현황
         # -------------------------------------------------------------
         st.subheader("📊 1. 모니터링 총괄 현황")
 
@@ -324,7 +324,7 @@ if uploaded_file is not None:
 
             pass_color, fail_color = q_colors.get(q_name, ("#1E3A8A", "#EF4444"))
 
-            # 시행 막대 (insidetextangle=0 설정으로 100%시 회전 방지)
+            # 시행 막대
             fig_total.add_trace(
                 go.Bar(
                     name=f"{q_name} (시행)",
@@ -337,13 +337,12 @@ if uploaded_file is not None:
                     ],
                     textposition="inside",
                     insidetextfont=dict(size=12, color="white"),
-                    insidetextangle=0,
                     marker_color=pass_color,
                     offsetgroup=q_name,
                 )
             )
 
-            # 미시행 막대 (텍스트 폭 줄임 및 세로 고정으로 겹침 완전 해결)
+            # 미시행 막대
             fail_p1, fail_p2, fail_fin = tot - p1, tot - p2, tot - fin
             
             fig_total.add_trace(
@@ -365,6 +364,8 @@ if uploaded_file is not None:
             )
 
         max_total = max([q["total"] for q in ordered_quarter_data.values()])
+
+        fig_total.update_traces(insidetextangle=0)  # 안전하게 회전 방지 적용
 
         fig_total.update_layout(
             barmode="group",
@@ -424,7 +425,6 @@ if uploaded_file is not None:
                     f"1차: {val}%" for val in raw_job_filtered["1차확인_비율"]
                 ],
                 textposition="inside",
-                insidetextangle=0,
                 marker_color="#3366cc",
             )
         )
@@ -437,10 +437,11 @@ if uploaded_file is not None:
                     f"2차: {val}%" for val in raw_job_filtered["2차확인_비율"]
                 ],
                 textposition="inside",
-                insidetextangle=0,
                 marker_color="#109618",
             )
         )
+
+        fig_job.update_traces(insidetextangle=0)
 
         for idx, row in raw_job_filtered.iterrows():
             total_height = row["1차확인_비율"] + row["2차확인_비율"]
@@ -505,7 +506,6 @@ if uploaded_file is not None:
                     for val in raw_context_filtered["1차확인_비율"]
                 ],
                 textposition="inside",
-                insidetextangle=0,
                 marker_color="#3366cc",
             )
         )
@@ -519,10 +519,11 @@ if uploaded_file is not None:
                     for val in raw_context_filtered["2차확인_비율"]
                 ],
                 textposition="inside",
-                insidetextangle=0,
                 marker_color="#109618",
             )
         )
+
+        fig_context.update_traces(insidetextangle=0)
 
         for idx, row in raw_context_filtered.iterrows():
             total_height = row["1차확인_비율"] + row["2차확인_비율"]
