@@ -383,13 +383,15 @@ if uploaded_file is not None:
             bargap=0.25,
             bargroupgap=0.08,
             height=580,
-            margin=dict(l=20, r=20, t=50, b=20),
+            margin=dict(l=20, r=20, t=50, b=30),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.22,
+                y=-0.26,
                 xanchor="center",
                 x=0.5,
+                font=dict(size=10.5),
+                itemwidth=40,
             ),
         )
 
@@ -463,8 +465,15 @@ if uploaded_file is not None:
             xaxis=dict(tickfont=dict(color="black", size=13)),
             yaxis=dict(title="누적 비율 (%)", range=[0, 225]),
             bargap=0.45,
-            height=500,
-            margin=dict(l=20, r=20, t=50, b=20),
+            height=530,
+            margin=dict(l=20, r=20, t=50, b=30),
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=-0.22,
+                xanchor="center",
+                x=0.5,
+            ),
         )
 
         col_l2, col_m2, col_r2 = st.columns([1, 3, 1])
@@ -547,8 +556,15 @@ if uploaded_file is not None:
             xaxis=dict(tickfont=dict(color="black", size=12.5)),
             yaxis=dict(title="누적 비율 (%)", range=[0, 225]),
             bargap=0.4,
-            height=520,
-            margin=dict(l=20, r=20, t=50, b=20),
+            height=530,
+            margin=dict(l=20, r=20, t=50, b=30),
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=-0.22,
+                xanchor="center",
+                x=0.5,
+            ),
         )
 
         col_l3, col_m3, col_r3 = st.columns([0.5, 4, 0.5])
