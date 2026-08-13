@@ -199,12 +199,12 @@ def format_stats_df(stats, group_col):
     return result_df
 
 
-# 동적 여백 계산으로 모든 그래프의 글자 겹침을 방지하는 외곽 테두리 함수
-def add_chart_border(fig, pad=4):
-    height = fig.layout.height or 650
+# 좌우 테두리가 잘리지 않도록 수정한 테두리 함수
+def add_chart_border(fig, pad=8):
+    height = fig.layout.height or 600
     margin = fig.layout.margin
     t = margin.t if (margin and margin.t is not None) else 100
-    b = margin.b if (margin and margin.b is not None) else 130
+    b = margin.b if (margin and margin.b is not None) else 120
 
     plot_h = height - t - b
     if plot_h <= 0:
@@ -217,9 +217,9 @@ def add_chart_border(fig, pad=4):
         type="rect",
         xref="paper",
         yref="paper",
-        x0=-0.05,
+        x0=0.0,
         y0=y0,
-        x1=1.05,
+        x1=1.0,
         y1=y1,
         line=dict(color="#222222", width=2),
     )
@@ -368,7 +368,7 @@ if uploaded_file is not None:
             )
 
             fail_p1, fail_p2, fail_fin = tot - p1, tot - p2, tot - fin
-            
+
             fig_total.add_trace(
                 go.Bar(
                     name=f"{q_name} (미시행)",
@@ -444,7 +444,7 @@ if uploaded_file is not None:
         st.divider()
 
         # -------------------------------------------------------------
-        # 2. 직군별 정확한 환자 확인 (픽스)
+        # 2. 직군별 정확한 환자 확인 (픽스 유지)
         # -------------------------------------------------------------
         st.subheader("👥 2) 직군별 정확한 환자 확인")
         raw_job = calc_stats_raw(df, "직군")
@@ -457,7 +457,7 @@ if uploaded_file is not None:
         raw_job_filtered = raw_job_filtered.sort_values("직군").reset_index(
             drop=True
         )
-        
+
         res_job_df = format_stats_df(raw_job_filtered, "직군")
         st.dataframe(res_job_df, use_container_width=True)
 
