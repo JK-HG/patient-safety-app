@@ -69,7 +69,6 @@ def map_dept_detailed(dept, job):
         else ""
     )
 
-    # 표준 부서명 정돈
     if dept_str in ["일반내과", "내과"]:
         dept_clean = "내과"
     elif dept_str in ["물리치료팀", "물리치료실"]:
@@ -79,7 +78,6 @@ def map_dept_detailed(dept, job):
     else:
         dept_clean = dept_str
 
-    # 외래 관련 진료과/부서 목록
     outpatient_depts = [
         "화상외과",
         "성형외과",
@@ -89,19 +87,16 @@ def map_dept_detailed(dept, job):
         "외래",
     ]
 
-    # 규칙 1: 직종이 '의사'인 경우 -> '1. 진료과'
     if job_str == "의사":
         sub_dept = dept_clean if dept_clean else "진료과"
         return "1. 진료과", sub_dept
 
-    # 규칙 2: 직종이 '간호사'인 경우 -> '2. 간호부'
     if job_str == "간호사":
         if dept_clean in outpatient_depts:
             return "2. 간호부", "외래"
         else:
             return "2. 간호부", dept_clean if dept_clean else "외래"
 
-    # 규칙 3: 기타 직종 부서 매핑
     if dept_clean in ["물리치료실", "영상의학과", "수납/접수"]:
         return "3. 진료지원 및 행정", dept_clean
 
@@ -218,73 +213,122 @@ if uploaded_file is not None:
         )
 
         # -------------------------------------------------------------
-        # 1. 모니터링 총괄 현황
+        # 1. 모니터링 총괄 현황 (분기별 비교 가능)
         # -------------------------------------------------------------
         st.subheader("📊 1. 모니터링 총괄 현황")
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("총 점검 건수", f"{total_count} 건")
-        c2.metric("1차 이름확인 건수", f"{p1_count} 건")
-        c3.metric("2차 등록/생년월일 확인", f"{p2_count} 건")
-        c4.metric(
-            "최종 정확한 환자확인",
-            f"{final_count} 건",
-            delta=f"이행률 {final_rate}%",
-        )
 
-        p1_pct = round(p1_count / total_count * 100, 1) if total_count > 0 else 0
-        p2_pct = round(p2_count / total_count * 100, 1) if total_count > 0 else 0
-        final_pct = round(final_count / total_count * 100, 1) if total_count > 0 else 0
-
-        fig_total = go.Figure()
-        fig_total.add_trace(
-            go.Bar(
-                name="시행",
-                x=["1차 환자성명 확인", "2차 등록번호 확인", "정확한 환자확인"],
-                y=[p1_count, p2_count, final_count],
-                text=[
-                    f"시행: {p1_count}명 ({p1_pct}%)",
-                    f"시행: {p2_count}명 ({p2_pct}%)",
-                    f"시행: {final_count}명 ({final_pct}%)",
-                ],
-                textposition="inside",
-                marker_color="#2b5c8f",
+        with st.expander("📅 **분기별 수치 입력/선택 (1~4분기 비교 설정)**", expanded=True):
+            st.info("비교하려는 분기를 선택하고 각 분기별 수치를 입력하세요. 업로드된 파일의 실데이터가 기본값으로 적용됩니다.")
+            
+            selected_quarters = st.multiselect(
+                "비교할 분기를 선택하세요:",
+                ["1분기", "2분기", "3분기", "4분기"],
+                default=["1분기"]
             )
-        )
-        fig_total.add_trace(
-            go.Bar(
-                name="미시행",
-                x=["1차 환자성명 확인", "2차 등록번호 확인", "정확한 환자확인"],
-                y=[
-                    total_count - p1_count,
-                    total_count - p2_count,
-                    total_count - final_count,
-                ],
-                text=[
-                    f"미시행: {total_count - p1_count}명",
-                    f"미시행: {total_count - p2_count}명",
-                    f"미시행: {total_count - final_count}명",
-                ],
-                textposition="inside",
-                marker_color="#d9534f",
+
+            quarter_data = {}
+            if selected_quarters:
+                q_cols = st.columns(len(selected_quarters))
+                for idx, q_name in enumerate(selected_quarters):
+                    with q_cols[idx]:
+                        st.markdown(f"##### **{q_name} 수치 설정**")
+                        # 기본값 설정 (첫 번째 선택 분기에 업로드 파일 수치 반영)
+                        default_total = total_count if idx == 0 else 100
+                        default_p1 = p1_count if idx == 0 else 90
+                        default_p2 = p2_count if idx == 0 else 90
+                        default_final = final_count if idx == 0 else 85
+
+                        q_total = st.number_input(f"총 점검 건수 ({q_name})", value=default_total, min_value=1, step=1, key=f"tot_{q_name}")
+                        q_p1 = st.number_input(f"1차 성명 확인 ({q_name})", value=min(default_p1, q_total), min_value=0, max_value=q_total, step=1, key=f"p1_{q_name}")
+                        q_p2 = st.number_input(f"2차 등록번호 확인 ({q_name})", value=min(default_p2, q_total), min_value=0, max_value=q_total, step=1, key=f"p2_{q_name}")
+                        q_final = st.number_input(f"정확한 환자확인 ({q_name})", value=min(default_final, q_total), min_value=0, max_value=q_total, step=1, key=f"fin_{q_name}")
+
+                        quarter_data[q_name] = {
+                            "total": q_total,
+                            "p1": q_p1,
+                            "p2": q_p2,
+                            "final": q_final
+                        }
+
+        # 선택된 분기별 데이터 차트 생성
+        if quarter_data:
+            categories = ["1차 환자성명 확인", "2차 등록번호 확인", "정확한 환자확인"]
+            
+            fig_total = go.Figure()
+            
+            # 색상 팔레트 (분기별)
+            q_colors = {
+                "1분기": ("#2b5c8f", "#d9534f"),
+                "2분기": ("#337ab7", "#f0ad4e"),
+                "3분기": ("#5cb85c", "#f06292"),
+                "4분기": ("#7b1fa2", "#ba68c8")
+            }
+
+            for q_name, q_val in quarter_data.items():
+                tot = q_val["total"]
+                p1 = q_val["p1"]
+                p2 = q_val["p2"]
+                fin = q_val["final"]
+
+                p1_pct = round(p1 / tot * 100, 1)
+                p2_pct = round(p2 / tot * 100, 1)
+                fin_pct = round(fin / tot * 100, 1)
+
+                pass_color, fail_color = q_colors.get(q_name, ("#2b5c8f", "#d9534f"))
+
+                # 시행 막대
+                fig_total.add_trace(
+                    go.Bar(
+                        name=f"{q_name} (시행)",
+                        x=categories,
+                        y=[p1, p2, fin],
+                        text=[
+                            f"[{q_name}]<br>시행: {p1}명 ({p1_pct}%)",
+                            f"[{q_name}]<br>시행: {p2}명 ({p2_pct}%)",
+                            f"[{q_name}]<br>시행: {fin}명 ({fin_pct}%)",
+                        ],
+                        textposition="inside",
+                        marker_color=pass_color,
+                        offsetgroup=q_name,
+                    )
+                )
+
+                # 미시행 막대
+                fig_total.add_trace(
+                    go.Bar(
+                        name=f"{q_name} (미시행)",
+                        x=categories,
+                        y=[tot - p1, tot - p2, tot - fin],
+                        text=[
+                            f"미시행: {tot - p1}명",
+                            f"미시행: {tot - p2}명",
+                            f"미시행: {tot - fin}명",
+                        ],
+                        textposition="inside",
+                        marker_color=fail_color,
+                        offsetgroup=q_name,
+                        base=[p1, p2, fin]  # 시행 위에 쌓기
+                    )
+                )
+
+            # y축 범위 계산
+            max_total = max([q["total"] for q in quarter_data.values()])
+
+            fig_total.update_layout(
+                barmode="group",
+                title="<b>[분기별 비교] 항목별 시행/미시행 인원 비교</b>",
+                xaxis=dict(tickfont=dict(color="black", size=13)),
+                yaxis=dict(title="인원 수 (명)", range=[0, max_total * 1.15]),
+                bargap=0.2,
+                bargroupgap=0.08,
+                height=520,
+                margin=dict(l=20, r=20, t=60, b=20),
+                legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
             )
-        )
 
-        min_val = min(p1_count, p2_count, final_count)
-        y_min = max(0, min_val - max(15, int(total_count * 0.15)))
-
-        fig_total.update_layout(
-            barmode="stack",
-            title="총괄 항목별 시행/미시행 인원 비교",
-            xaxis=dict(tickfont=dict(color="black", size=13)),
-            yaxis=dict(title="인원 수 (명)", range=[y_min, total_count + 10]),
-            bargap=0.45,
-            height=480,
-            margin=dict(l=20, r=20, t=50, b=20),
-        )
-
-        col_left, col_mid, col_right = st.columns([1, 3, 1])
-        with col_mid:
-            st.plotly_chart(fig_total, use_container_width=True)
+            col_left, col_mid, col_right = st.columns([0.5, 4, 0.5])
+            with col_mid:
+                st.plotly_chart(fig_total, use_container_width=True)
 
         st.divider()
 
@@ -554,12 +598,10 @@ if uploaded_file is not None:
         fail_df = df[~df["정확한확인_성공"]].copy()
 
         if len(fail_df) > 0:
-            # 미시행 원인 분류
             fail_df["미시행_유형"] = fail_df.apply(
                 classify_fail_reason, axis=1
             )
 
-            # 원그래프 생성을 위한 통계
             fail_summary = (
                 fail_df["미시행_유형"]
                 .value_counts()
@@ -567,7 +609,6 @@ if uploaded_file is not None:
             )
             fail_summary.columns = ["미시행_유형", "건수"]
 
-            # 색상 매핑
             color_map = {
                 "1차 미시행": "#ff9999",
                 "2차 미시행": "#ffcc99",
@@ -584,7 +625,6 @@ if uploaded_file is not None:
                 hole=0.3,
             )
 
-            # insidetextorientation='horizontal' 추가로 글자를 가로로 고정
             fig_pie.update_traces(
                 textposition="inside",
                 textinfo="label+percent+value",
@@ -609,7 +649,6 @@ if uploaded_file is not None:
             with col_pie_m:
                 st.plotly_chart(fig_pie, use_container_width=True)
 
-            # 미시행 상세 목록 표
             st.markdown("#### 📋 미시행 상세 목록")
             show_fail_df = fail_df[
                 [
