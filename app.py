@@ -199,37 +199,6 @@ def format_stats_df(stats, group_col):
     return result_df
 
 
-# Y축 눈금자 위치까지 고려한 완벽한 테두리 함수
-def add_chart_border(fig, pad=10):
-    height = fig.layout.height or 600
-    width = fig.layout.width or 900
-    margin = fig.layout.margin
-
-    t = margin.t if (margin and margin.t is not None) else 100
-    b = margin.b if (margin and margin.b is not None) else 120
-    l = margin.l if (margin and margin.l is not None) else 80
-    r = margin.r if (margin and margin.r is not None) else 60
-
-    plot_h = max(height - t - b, 100)
-    plot_w = max(width - l - r, 100)
-
-    y1 = 1.0 + (t - pad) / plot_h
-    y0 = 0.0 - (b - pad) / plot_h
-    x0 = 0.0 - (l - pad) / plot_w
-    x1 = 1.0 + (r - pad) / plot_w
-
-    fig.add_shape(
-        type="rect",
-        xref="paper",
-        yref="paper",
-        x0=x0,
-        y0=y0,
-        x1=x1,
-        y1=y1,
-        line=dict(color="#222222", width=2),
-    )
-
-
 if uploaded_file is not None:
     try:
         df_raw = pd.read_excel(uploaded_file)
@@ -440,16 +409,16 @@ if uploaded_file is not None:
                 entrywidthmode="pixels"
             ),
         )
-        add_chart_border(fig_total)
 
         col_l1, col_m1, col_r1 = st.columns(col_ratio)
         with col_m1:
-            st.plotly_chart(fig_total, use_container_width=True)
+            with st.container(border=True):
+                st.plotly_chart(fig_total, use_container_width=True)
 
         st.divider()
 
         # -------------------------------------------------------------
-        # 2. 직군별 정확한 환자 확인 (픽스)
+        # 2. 직군별 정확한 환자 확인
         # -------------------------------------------------------------
         st.subheader("👥 2) 직군별 정확한 환자 확인")
         raw_job = calc_stats_raw(df, "직군")
@@ -532,11 +501,11 @@ if uploaded_file is not None:
                 font=dict(size=18)
             ),
         )
-        add_chart_border(fig_job)
 
         col_l2, col_m2, col_r2 = st.columns([0.5, 4, 0.5])
         with col_m2:
-            st.plotly_chart(fig_job, use_container_width=True)
+            with st.container(border=True):
+                st.plotly_chart(fig_job, use_container_width=True)
 
         st.divider()
 
@@ -634,11 +603,11 @@ if uploaded_file is not None:
                 font=dict(size=18)
             ),
         )
-        add_chart_border(fig_context)
 
         col_l3, col_m3, col_r3 = st.columns([0.2, 4.6, 0.2])
         with col_m3:
-            st.plotly_chart(fig_context, use_container_width=True)
+            with st.container(border=True):
+                st.plotly_chart(fig_context, use_container_width=True)
 
         st.divider()
 
@@ -790,11 +759,11 @@ if uploaded_file is not None:
                     height=580,
                     margin=dict(l=80, r=60, t=100, b=90),
                 )
-                add_chart_border(fig_dept_sub)
 
                 col_l4, col_m4, col_r4 = st.columns([0.5, 4, 0.5])
                 with col_m4:
-                    st.plotly_chart(fig_dept_sub, use_container_width=True)
+                    with st.container(border=True):
+                        st.plotly_chart(fig_dept_sub, use_container_width=True)
 
         # -------------------------------------------------------------
         # 5. 미시행 분석 및 상세 목록
@@ -859,11 +828,11 @@ if uploaded_file is not None:
                     font=dict(size=18)
                 ),
             )
-            add_chart_border(fig_pie)
 
             col_pie_l, col_pie_m, col_pie_r = st.columns([0.5, 4, 0.5])
             with col_pie_m:
-                st.plotly_chart(fig_pie, use_container_width=True)
+                with st.container(border=True):
+                    st.plotly_chart(fig_pie, use_container_width=True)
 
             st.markdown("#### 📋 미시행 상세 목록")
             show_fail_df = fail_df[
