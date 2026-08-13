@@ -199,16 +199,16 @@ def format_stats_df(stats, group_col):
     return result_df
 
 
-# 공통 그래프 테두리 박스 생성 함수
+# 전체 타이틀/범례 포함 외곽 테두리 박스 생성 함수
 def add_chart_border(fig):
     fig.add_shape(
         type="rect",
-        xref="paper",
-        yref="paper",
-        x0=0,
-        y0=0,
-        x1=1,
-        y1=1,
+        xref="container",
+        yref="container",
+        x0=0.002,
+        y0=0.002,
+        x1=0.998,
+        y1=0.998,
         line=dict(color="#222222", width=2),
     )
 
@@ -349,7 +349,7 @@ if uploaded_file is not None:
                         f"<b>{fin}명</b><br>({fin_pct}%)",
                     ],
                     textposition="inside",
-                    insidetextfont=dict(size=18, color="white"), # 폰트 대폭 확대
+                    insidetextfont=dict(size=18, color="white"),
                     marker_color=pass_color,
                     offsetgroup=q_name,
                 )
@@ -368,7 +368,7 @@ if uploaded_file is not None:
                         f"<b>{fail_fin}명</b>" if fail_fin > 0 else "",
                     ],
                     textposition="outside",
-                    outsidetextfont=dict(size=18, color=fail_color), # 폰트 대폭 확대
+                    outsidetextfont=dict(size=18, color=fail_color),
                     marker_color=fail_color,
                     offsetgroup=q_name,
                     base=[p1, p2, fin],
@@ -393,11 +393,12 @@ if uploaded_file is not None:
             title=dict(
                 text="<b>정확한 환자 확인율</b>",
                 x=0.5,
+                y=0.94,
                 xanchor="center",
-                font=dict(size=28, color="black") # 타이틀 28pt 확대
+                font=dict(size=28, color="black")
             ),
             xaxis=dict(
-                tickfont=dict(color="black", size=20, family="sans-serif"), # 축눈금 20pt 확대
+                tickfont=dict(color="black", size=20, family="sans-serif"),
                 title=None
             ),
             yaxis=dict(
@@ -407,21 +408,21 @@ if uploaded_file is not None:
             ),
             bargap=dynamic_bargap,
             bargroupgap=0.08,
-            height=620,
-            margin=dict(l=30, r=30, t=80, b=50),
+            height=650,
+            margin=dict(l=40, r=40, t=90, b=80),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.25,
+                y=-0.18,
                 xanchor="center",
                 x=0.5,
-                font=dict(size=18), # 범례 18pt 확대
+                font=dict(size=18),
                 itemwidth=35,
                 entrywidth=120,
                 entrywidthmode="pixels"
             ),
         )
-        add_chart_border(fig_total) # 외곽 테두리 추가
+        add_chart_border(fig_total)
 
         col_l1, col_m1, col_r1 = st.columns(col_ratio)
         with col_m1:
@@ -457,7 +458,7 @@ if uploaded_file is not None:
                     f"1차: {val}%" for val in raw_job_filtered["1차확인_비율"]
                 ],
                 textposition="inside",
-                insidetextfont=dict(size=20, color="white"), # 20pt 확대
+                insidetextfont=dict(size=20, color="white"),
                 marker_color="#3366cc",
             )
         )
@@ -470,7 +471,7 @@ if uploaded_file is not None:
                     f"2차: {val}%" for val in raw_job_filtered["2차확인_비율"]
                 ],
                 textposition="inside",
-                insidetextfont=dict(size=20, color="white"), # 20pt 확대
+                insidetextfont=dict(size=20, color="white"),
                 marker_color="#109618",
             )
         )
@@ -482,7 +483,7 @@ if uploaded_file is not None:
                 y=total_height + 8,
                 text=f"<b>정확한 확인율: {row['정확한확인_비율']}%</b>",
                 showarrow=False,
-                font=dict(size=20, color="#2b5c8f"), # 주석 20pt 확대
+                font=dict(size=20, color="#2b5c8f"),
             )
 
         fig_job.update_layout(
@@ -490,28 +491,29 @@ if uploaded_file is not None:
             title=dict(
                 text="<b>직군별 정확한 환자 확인율</b>",
                 x=0.5,
+                y=0.94,
                 xanchor="center",
-                font=dict(size=28, color="black") # 타이틀 28pt 확대
+                font=dict(size=28, color="black")
             ),
-            xaxis=dict(tickfont=dict(color="black", size=20)), # X축 20pt
+            xaxis=dict(tickfont=dict(color="black", size=20)),
             yaxis=dict(
                 title=dict(text="누적 비율 (%)", font=dict(size=20, color="black")), 
                 tickfont=dict(size=18, color="black"),
                 range=[0, 235]
             ),
             bargap=0.45,
-            height=600,
-            margin=dict(l=30, r=30, t=80, b=50),
+            height=630,
+            margin=dict(l=40, r=40, t=90, b=80),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.22,
+                y=-0.18,
                 xanchor="center",
                 x=0.5,
                 font=dict(size=18)
             ),
         )
-        add_chart_border(fig_job) # 외곽 테두리 추가
+        add_chart_border(fig_job)
 
         col_l2, col_m2, col_r2 = st.columns([0.5, 4, 0.5])
         with col_m2:
@@ -556,7 +558,7 @@ if uploaded_file is not None:
                     for val in raw_context_filtered["1차확인_비율"]
                 ],
                 textposition="inside",
-                insidetextfont=dict(size=20, color="white"), # 20pt 확대
+                insidetextfont=dict(size=20, color="white"),
                 marker_color="#3366cc",
             )
         )
@@ -570,7 +572,7 @@ if uploaded_file is not None:
                     for val in raw_context_filtered["2차확인_비율"]
                 ],
                 textposition="inside",
-                insidetextfont=dict(size=20, color="white"), # 20pt 확대
+                insidetextfont=dict(size=20, color="white"),
                 marker_color="#109618",
             )
         )
@@ -582,7 +584,7 @@ if uploaded_file is not None:
                 y=total_height + 8,
                 text=f"<b>정확한 확인율: {row['정확한확인_비율']}%</b>",
                 showarrow=False,
-                font=dict(size=18, color="#2b5c8f"), # 18pt 확대
+                font=dict(size=18, color="#2b5c8f"),
             )
 
         fig_context.update_layout(
@@ -590,28 +592,29 @@ if uploaded_file is not None:
             title=dict(
                 text="<b>상황별 정확한 환자 확인율</b>",
                 x=0.5,
+                y=0.94,
                 xanchor="center",
-                font=dict(size=28, color="black") # 타이틀 28pt 확대
+                font=dict(size=28, color="black")
             ),
-            xaxis=dict(tickfont=dict(color="black", size=20)), # X축 20pt
+            xaxis=dict(tickfont=dict(color="black", size=20)),
             yaxis=dict(
                 title=dict(text="누적 비율 (%)", font=dict(size=20, color="black")), 
                 tickfont=dict(size=18, color="black"),
                 range=[0, 235]
             ),
             bargap=0.4,
-            height=600,
-            margin=dict(l=30, r=30, t=80, b=50),
+            height=630,
+            margin=dict(l=40, r=40, t=90, b=80),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.22,
+                y=-0.18,
                 xanchor="center",
                 x=0.5,
                 font=dict(size=18)
             ),
         )
-        add_chart_border(fig_context) # 외곽 테두리 추가
+        add_chart_border(fig_context)
 
         col_l3, col_m3, col_r3 = st.columns([0.2, 4.6, 0.2])
         with col_m3:
@@ -739,33 +742,34 @@ if uploaded_file is not None:
                         "부서_소분류": "세부 부서",
                         "정확한확인_비율": "이행률 (%)",
                     },
-                    color_discrete_sequence=["#002060"], # 샘플 이미지 색상 반영(Dark Navy)
+                    color_discrete_sequence=["#002060"],
                 )
                 fig_dept_sub.update_traces(
                     textposition="outside",
-                    textfont=dict(size=20, color="black") # 샘플 이미지처럼 100% 텍스트 20pt 볼드
+                    textfont=dict(size=20, color="black")
                 )
                 fig_dept_sub.update_layout(
                     title=dict(
                         x=0.5,
+                        y=0.92,
                         xanchor="center",
-                        font=dict(size=28, color="black") # 타이틀 28pt
+                        font=dict(size=28, color="black")
                     ),
                     xaxis=dict(
                         title=None,
-                        tickfont=dict(color="black", size=20) # X축 라벨(물리치료실 등) 20pt
+                        tickfont=dict(color="black", size=20)
                     ),
                     yaxis=dict(
                         title=None,
-                        tickfont=dict(size=18, color="black"), # Y축 눈금(0%, 20%...) 18pt
+                        tickfont=dict(size=18, color="black"),
                         range=[0, 115],
                         ticksuffix="%"
                     ),
                     bargap=0.5,
-                    height=520,
-                    margin=dict(l=30, r=30, t=80, b=40),
+                    height=550,
+                    margin=dict(l=40, r=40, t=85, b=50),
                 )
-                add_chart_border(fig_dept_sub) # 외곽 테두리 추가
+                add_chart_border(fig_dept_sub)
 
                 col_l4, col_m4, col_r4 = st.columns([0.5, 4, 0.5])
                 with col_m4:
@@ -811,28 +815,29 @@ if uploaded_file is not None:
                 textposition="inside",
                 textinfo="label+percent+value",
                 texttemplate="<b>%{label}</b><br>%{value}건 (%{percent})",
-                insidetextfont=dict(size=20, color="black"), # 파이 차트 내부 텍스트 20pt
+                insidetextfont=dict(size=20, color="black"),
                 insidetextorientation="horizontal",
             )
 
             fig_pie.update_layout(
                 title=dict(
                     x=0.5,
+                    y=0.92,
                     xanchor="center",
-                    font=dict(size=28, color="black") # 타이틀 28pt
+                    font=dict(size=28, color="black")
                 ),
-                height=520,
-                margin=dict(l=30, r=30, t=80, b=40),
+                height=550,
+                margin=dict(l=40, r=40, t=85, b=60),
                 legend=dict(
                     orientation="h",
                     yanchor="bottom",
-                    y=-0.18,
+                    y=-0.15,
                     xanchor="center",
                     x=0.5,
                     font=dict(size=18)
                 ),
             )
-            add_chart_border(fig_pie) # 외곽 테두리 추가
+            add_chart_border(fig_pie)
 
             col_pie_l, col_pie_m, col_pie_r = st.columns([0.5, 4, 0.5])
             with col_pie_m:
