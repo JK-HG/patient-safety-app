@@ -402,19 +402,17 @@ if uploaded_file is not None:
             ),
             bargap=dynamic_bargap,
             bargroupgap=0.08,
-            height=720,  # 전체 높이 약간 확장
-            margin=dict(
-                l=80, r=60, t=100, b=160
-            ),  # 하단 여백(b)을 늘려 범례 공간 확보
+            height=720,
+            margin=dict(l=80, r=100, t=100, b=160),  # 우측 여백을 100으로 확장
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.32,  # 범례 위치를 아래로 더 내림
+                y=-0.32,
                 xanchor="center",
                 x=0.5,
-                font=dict(size=14),  # 글씨 크기를 살짝 줄여서 1줄로 정돈
+                font=dict(size=14),
                 itemwidth=30,
-                entrywidth=100,  # 항목 간 너비 조절로 한 줄에 모이도록 유도
+                entrywidth=100,
                 entrywidthmode="pixels",
             ),
         )
@@ -500,7 +498,9 @@ if uploaded_file is not None:
             ),
             bargap=0.45,
             height=660,
-            margin=dict(l=80, r=60, t=100, b=130),
+            margin=dict(
+                l=80, r=100, t=100, b=130
+            ),  # 우측 여백(r)을 100으로 넓혀 글자 잘림 방지
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
@@ -508,6 +508,8 @@ if uploaded_file is not None:
                 xanchor="center",
                 x=0.5,
                 font=dict(size=18),
+                entrywidth=200,  # 범례 항목당 충분한 너비 부여
+                entrywidthmode="pixels",
             ),
         )
 
@@ -602,7 +604,9 @@ if uploaded_file is not None:
             ),
             bargap=0.4,
             height=660,
-            margin=dict(l=80, r=60, t=100, b=130),
+            margin=dict(
+                l=80, r=100, t=100, b=130
+            ),  # 우측 여백(r)을 100으로 넓혀 글자 잘림 방지
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
@@ -610,6 +614,8 @@ if uploaded_file is not None:
                 xanchor="center",
                 x=0.5,
                 font=dict(size=18),
+                entrywidth=200,  # 범례 항목당 충분한 너비 부여
+                entrywidthmode="pixels",
             ),
         )
 
