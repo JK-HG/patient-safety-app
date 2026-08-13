@@ -31,33 +31,27 @@ def map_job(job):
     return "기타"
 
 
-# 2. 상황별 카테고리 매핑 (1~6번 단일 분류)
+# 2. 상황별 카테고리 매핑
 def map_context(item):
     if pd.isna(item):
         return "6. 그 외 항목"
 
     item = str(item).strip()
 
-    # 1. 입원/외래진료/수납
     if item in ["진료 전", "기 타 - 수납 시", "기 타 - 입원 시"]:
         return "1. 입원/외래진료/수납"
-    # 2. 투약
     elif item == "의약품 투여 전":
         return "2. 투약"
-    # 3. 검사/검체 채취
     elif item.startswith("검사 시행 전"):
         return "3. 검사/검체 채취"
-    # 4. 처치/수술/수혈
     elif (
         item.startswith("처치 및 시술 전")
         or item.startswith("혈액제제 투여 전")
         or "수술전" in item
     ):
         return "4. 처치/수술/수혈"
-    # 5. 물리치료
     elif item == "기 타 - 물리치료":
         return "5. 물리치료"
-    # 6. 그 외 항목
     else:
         return "6. 그 외 항목"
 
@@ -69,13 +63,11 @@ def map_dept_detailed(dept):
 
     dept = str(dept).strip()
 
-    # 명칭 정규화
     if dept == "일반내과":
         dept = "내과"
     elif dept == "물리치료팀":
         dept = "물리치료실"
 
-    # 1. 진료과
     if dept in [
         "화상외과",
         "성형외과",
@@ -84,7 +76,6 @@ def map_dept_detailed(dept):
         "소아청소년과",
     ]:
         return "1. 진료과", dept
-    # 2. 간호부
     elif dept in [
         "외래",
         "신관3병동",
@@ -96,10 +87,8 @@ def map_dept_detailed(dept):
         "화상중환자실",
     ]:
         return "2. 간호부", dept
-    # 3. 진료지원
     elif dept in ["물리치료실", "영상의학과"]:
         return "3. 진료지원", dept
-    # 4. 행정
     elif dept in ["수납계", "원무계"]:
         return "4. 행정", dept
     else:
@@ -107,7 +96,6 @@ def map_dept_detailed(dept):
 
 
 def process_excel(df_raw):
-    # 헤더 자동 인식
     if "NO" not in df_raw.columns:
         for idx, row in df_raw.iterrows():
             if "NO" in row.values:
@@ -117,18 +105,15 @@ def process_excel(df_raw):
 
     df = df_raw.dropna(subset=["NO"]).copy()
 
-    # 1차, 2차, 최종 정확한 환자확인 판정
     df["1차확인_성공"] = df["이름확인"].astype(str).str.strip() == "시행"
     df["2차확인_성공"] = (
         df["등록번호 확인"].astype(str).str.strip() == "시행"
     ) | (df["생년월일 확인"].astype(str).str.strip() == "시행")
     df["정확한확인_성공"] = df["1차확인_성공"] & df["2차확인_성공"]
 
-    # 파생 변수
     df["직군"] = df["직종"].apply(map_job)
     df["상황"] = df["환자확인사항"].apply(map_context)
 
-    # 부서 분류
     raw_dept = df["상세부서명"].fillna(df["부서"])
     dept_res = raw_dept.apply(map_dept_detailed)
     df["부서_대분류"] = [r[0] for r in dept_res]
@@ -138,7 +123,6 @@ def process_excel(df_raw):
 
 
 def calc_stats_raw(df, group_col):
-    """그래프 및 통계용 기초 데이터프레임 집계"""
     stats = (
         df.groupby(group_col)
         .agg(
@@ -164,7 +148,6 @@ def calc_stats_raw(df, group_col):
 
 
 def format_stats_df(stats, group_col):
-    """표 출력용 문자열 포맷팅"""
     result_df = pd.DataFrame()
     result_df[group_col] = (
         stats[group_col].astype(str) + " (" + stats["전체건수"].astype(str) + "건)"
@@ -217,11 +200,11 @@ if uploaded_file is not None:
             delta=f"이행률 {final_rate}%",
         )
 
-        # 총괄 현황 누적 막대그래프
         p1_pct = round(p1_count / total_count * 100, 1) if total_count > 0 else 0
         p2_pct = round(p2_count / total_count * 100, 1) if total_count > 0 else 0
         final_pct = round(final_count / total_count * 100, 1) if total_count > 0 else 0
 
+        # 총괄 현황 누적 막대그래프
         fig_total = go.Figure()
         fig_total.add_trace(
             go.Bar(
@@ -229,9 +212,9 @@ if uploaded_file is not None:
                 x=["1차 환자성명 확인", "2차 등록번호 확인", "정확한 환자확인"],
                 y=[p1_count, p2_count, final_count],
                 text=[
-                    f"{p1_count}명 ({p1_pct}%)",
-                    f"{p2_count}명 ({p2_pct}%)",
-                    f"{final_count}명 ({final_pct}%)",
+                    f"시행: {p1_count}명 ({p1_pct}%)",
+                    f"시행: {p2_count}명 ({p2_pct}%)",
+                    f"시행: {final_count}명 ({final_pct}%)",
                 ],
                 textposition="inside",
                 marker_color="#2b5c8f",
@@ -247,22 +230,32 @@ if uploaded_file is not None:
                     total_count - final_count,
                 ],
                 text=[
-                    f"{total_count - p1_count}명",
-                    f"{total_count - p2_count}명",
-                    f"{total_count - final_count}명",
+                    f"미시행: {total_count - p1_count}명",
+                    f"미시행: {total_count - p2_count}명",
+                    f"미시행: {total_count - final_count}명",
                 ],
                 textposition="inside",
                 marker_color="#d9534f",
             )
         )
+
+        # 미시행 차이가 도드라지도록 Y축 최소범위 설정
+        min_val = min(p1_count, p2_count, final_count)
+        y_min = max(0, min_val - max(15, int(total_count * 0.15)))
+
         fig_total.update_layout(
             barmode="stack",
-            title="총괄 항목별 시행/미시행 인원 비율 (누적 막대)",
-            yaxis_title="인원 수 (명)",
-            height=380,
-            margin=dict(l=20, r=20, t=40, b=20),
+            title="총괄 항목별 시행/미시행 인원 비교 (Y축 하단 범위 조절)",
+            yaxis=dict(title="인원 수 (명)", range=[y_min, total_count + 10]),
+            bargap=0.45,  # 가로 막대 두께 슬림화
+            height=480,
+            margin=dict(l=20, r=20, t=50, b=20),
         )
-        st.plotly_chart(fig_total, use_container_width=True)
+
+        # 중앙 배치를 위한 컬럼 활용 (슬림한 스케일 지원)
+        col_left, col_mid, col_right = st.columns([1, 3, 1])
+        with col_mid:
+            st.plotly_chart(fig_total, use_container_width=True)
 
         st.divider()
 
@@ -273,7 +266,6 @@ if uploaded_file is not None:
         job_order = ["의사", "간호", "진료지원", "행정"]
         raw_job = calc_stats_raw(df, "직군")
 
-        # 4개 항목 순서 보장
         raw_job["직군"] = pd.Categorical(
             raw_job["직군"], categories=job_order, ordered=True
         )
@@ -282,14 +274,14 @@ if uploaded_file is not None:
         res_job_df = format_stats_df(raw_job, "직군")
         st.dataframe(res_job_df, use_container_width=True)
 
-        # 직군별 누적 막대그래프 (1차 %, 2차 %)
+        # 직군별 누적 막대그래프 (1차, 2차 + 상단에 최종 정확한 환자확인율 표시)
         fig_job = go.Figure()
         fig_job.add_trace(
             go.Bar(
                 name="1차 확인 비율 (%)",
                 x=raw_job["직군"],
                 y=raw_job["1차확인_비율"],
-                text=raw_job["1차확인_비율"].astype(str) + "%",
+                text=[f"1차: {val}%" for val in raw_job["1차확인_비율"]],
                 textposition="inside",
                 marker_color="#3366cc",
             )
@@ -299,19 +291,35 @@ if uploaded_file is not None:
                 name="2차 확인 비율 (%)",
                 x=raw_job["직군"],
                 y=raw_job["2차확인_비율"],
-                text=raw_job["2차확인_비율"].astype(str) + "%",
+                text=[f"2차: {val}%" for val in raw_job["2차확인_비율"]],
                 textposition="inside",
                 marker_color="#109618",
             )
         )
+
+        # 최상단에 [정확한 환자확인율] 주석/텍스트 추가
+        for idx, row in raw_job.iterrows():
+            total_height = row["1차확인_비율"] + row["2차확인_비율"]
+            fig_job.add_annotation(
+                x=row["직군"],
+                y=total_height + 5,
+                text=f"<b>정확한 확인율: {row['정확한확인_비율']}%</b>",
+                showarrow=False,
+                font=dict(size=12, color="#2b5c8f"),
+            )
+
         fig_job.update_layout(
             barmode="stack",
-            title="직군별 1차 및 2차 환자확인율 (누적 막대)",
-            yaxis_title="비율 (%)",
-            height=380,
-            margin=dict(l=20, r=20, t=40, b=20),
+            title="직군별 환자확인 이행 비율 (1차 / 2차 / 정확한 환자확인율)",
+            yaxis=dict(title="누적 비율 (%)", range=[0, 225]),
+            bargap=0.45,
+            height=500,
+            margin=dict(l=20, r=20, t=50, b=20),
         )
-        st.plotly_chart(fig_job, use_container_width=True)
+
+        col_l2, col_m2, col_r2 = st.columns([1, 3, 1])
+        with col_m2:
+            st.plotly_chart(fig_job, use_container_width=True)
 
         st.divider()
 
@@ -332,7 +340,7 @@ if uploaded_file is not None:
                 name="1차 확인 비율 (%)",
                 x=raw_context["상황"],
                 y=raw_context["1차확인_비율"],
-                text=raw_context["1차확인_비율"].astype(str) + "%",
+                text=[f"1차: {val}%" for val in raw_context["1차확인_비율"]],
                 textposition="inside",
                 marker_color="#3366cc",
             )
@@ -342,19 +350,35 @@ if uploaded_file is not None:
                 name="2차 확인 비율 (%)",
                 x=raw_context["상황"],
                 y=raw_context["2차확인_비율"],
-                text=raw_context["2차확인_비율"].astype(str) + "%",
+                text=[f"2차: {val}%" for val in raw_context["2차확인_비율"]],
                 textposition="inside",
                 marker_color="#109618",
             )
         )
+
+        # 최상단에 [정확한 환자확인율] 추가
+        for idx, row in raw_context.iterrows():
+            total_height = row["1차확인_비율"] + row["2차확인_비율"]
+            fig_context.add_annotation(
+                x=row["상황"],
+                y=total_height + 5,
+                text=f"<b>정확한 확인율: {row['정확한확인_비율']}%</b>",
+                showarrow=False,
+                font=dict(size=11, color="#2b5c8f"),
+            )
+
         fig_context.update_layout(
             barmode="stack",
-            title="상황별 1차 및 2차 환자확인율 (누적 막대)",
-            yaxis_title="비율 (%)",
-            height=400,
-            margin=dict(l=20, r=20, t=40, b=20),
+            title="상황별 환자확인 이행 비율 (1차 / 2차 / 정확한 환자확인율)",
+            yaxis=dict(title="누적 비율 (%)", range=[0, 225]),
+            bargap=0.4,
+            height=520,
+            margin=dict(l=20, r=20, t=50, b=20),
         )
-        st.plotly_chart(fig_context, use_container_width=True)
+
+        col_l3, col_m3, col_r3 = st.columns([0.5, 4, 0.5])
+        with col_m3:
+            st.plotly_chart(fig_context, use_container_width=True)
 
         st.divider()
 
@@ -363,7 +387,6 @@ if uploaded_file is not None:
         # -------------------------------------------------------------
         st.subheader("🏥 4) 부서별(대분류/소분류) 정확한 환자 확인")
 
-        # 세부 부서 집계
         raw_dept_sub = (
             df.groupby(["부서_대분류", "부서_소분류"])
             .agg(
@@ -384,7 +407,6 @@ if uploaded_file is not None:
             (raw_dept_sub["정확한확인_성공"] / raw_dept_sub["전체건수"] * 100).round(1)
         )
 
-        # 표 출력용 데이터프레임
         res_dept_df = pd.DataFrame()
         res_dept_df["부서 대분류"] = raw_dept_sub["부서_대분류"]
         res_dept_df["세부 부서(소분류)"] = (
@@ -417,7 +439,6 @@ if uploaded_file is not None:
         st.markdown("#### 📈 대분류별 세부 부서 이행률 막대그래프")
         dept_categories = sorted(raw_dept_sub["부서_대분류"].unique())
 
-        # 대분류별 탭으로 나누어 막대그래프 출력
         tabs = st.tabs(dept_categories)
         for tab, cat in zip(tabs, dept_categories):
             with tab:
@@ -436,11 +457,14 @@ if uploaded_file is not None:
                 )
                 fig_dept_sub.update_traces(textposition="outside")
                 fig_dept_sub.update_layout(
-                    yaxis=dict(range=[0, 115]),
-                    height=360,
+                    yaxis=dict(range=[0, 118]),
+                    bargap=0.45,  # 막대 폭 슬림화
+                    height=450,
                     margin=dict(l=20, r=20, t=40, b=20),
                 )
-                st.plotly_chart(fig_dept_sub, use_container_width=True)
+                col_l4, col_m4, col_r4 = st.columns([1, 3, 1])
+                with col_m4:
+                    st.plotly_chart(fig_dept_sub, use_container_width=True)
 
         # 미시행 목록
         st.divider()
