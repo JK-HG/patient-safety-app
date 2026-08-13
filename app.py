@@ -30,7 +30,7 @@ def map_job(job):
 
 
 def map_context(item):
-    """요청하신 지정 카테고리로 상황 분류"""
+    """상황별 카테고리 매핑"""
     if pd.isna(item):
         return "6. 그 외 항목"
 
@@ -60,6 +60,57 @@ def map_context(item):
         return "6. 그 외 항목"
 
 
+def normalize_dept_name(dept):
+    """부서명 단일화 정규화 (일반내과->내과, 물리치료팀/물리치료실->물리치료)"""
+    if pd.isna(dept):
+        return "기타"
+    dept = str(dept).strip()
+    if dept in ["일반내과", "내과"]:
+        return "내과"
+    elif dept in ["물리치료팀", "물리치료실"]:
+        return "물리치료"
+    return dept
+
+
+def map_dept(dept):
+    """부서별 카테고리 매핑"""
+    if pd.isna(dept):
+        return "5. 기타"
+
+    dept = str(dept).strip()
+
+    # 1. 진료과
+    if dept in [
+        "화상외과",
+        "성형외과",
+        "재활의학과",
+        "내과",
+        "일반내과",
+        "소아청소년과",
+    ]:
+        return "1. 진료과"
+    # 2. 간호부
+    elif dept in [
+        "외래",
+        "신관3병동",
+        "본관5병동",
+        "본관6병동",
+        "본관7병동",
+        "본관8병동",
+        "응급실",
+        "화상중환자실",
+    ]:
+        return "2. 간호부"
+    # 3. 진료지원
+    elif dept in ["물리치료실", "물리치료팀", "물리치료", "영상의학과"]:
+        return "3. 진료지원"
+    # 4. 행정
+    elif dept in ["수납계", "원무계"]:
+        return "4. 행정"
+    else:
+        return "5. 기타"
+
+
 def process_excel(df_raw):
     # 상단 텍스트 행 제외하고 'NO' 열 위치를 기준으로 헤더 자동 인식
     if "NO" not in df_raw.columns:
@@ -86,7 +137,11 @@ def process_excel(df_raw):
     # 파생 변수 생성
     df["직군"] = df["직종"].apply(map_job)
     df["상황"] = df["환자확인사항"].apply(map_context)
-    df["부서명"] = df["상세부서명"].fillna(df["부서"])
+
+    # 부서명 정규화 적용
+    raw_dept = df["상세부서명"].fillna(df["부서"])
+    df["상세부서"] = raw_dept.apply(normalize_dept_name)
+    df["부서"] = df["상세부서"].apply(map_dept)
 
     return df
 
@@ -103,8 +158,8 @@ def calc_stats(df, group_col):
         .reset_index()
     )
 
-    # 순서 정렬 (상황 컬럼일 경우 지정된 번호순 정렬)
-    if group_col == "상황":
+    # 지정 번호순 정렬
+    if group_col in ["상황", "부서"]:
         stats = stats.sort_values(by=group_col).reset_index(drop=True)
 
     stats["1차확인 비율"] = (
@@ -178,8 +233,8 @@ if uploaded_file is not None:
         st.dataframe(res_context, use_container_width=True)
 
         # 3. 부서별
-        st.subheader("🏥 3) 부서별 정확한 환자 확인")
-        res_dept, _ = calc_stats(df, "부서명")
+        st.subheader("🏥 3) 부서별 카테고리 정확한 환자 확인")
+        res_dept, _ = calc_stats(df, "부서")
         st.dataframe(res_dept, use_container_width=True)
 
         # 미시행 목록
@@ -188,7 +243,8 @@ if uploaded_file is not None:
         fail_df = df[~df["정확한확인_성공"]][
             [
                 "NO",
-                "부서명",
+                "부서",
+                "상세부서",
                 "직종",
                 "이름",
                 "환자확인사항",
