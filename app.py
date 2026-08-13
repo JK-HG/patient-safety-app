@@ -367,7 +367,11 @@ if uploaded_file is not None:
 
         fig_total.update_layout(
             barmode="group",
-            title="<b>[총괄] 항목별 시행/미시행 인원 분기별 비교</b>",
+            title=dict(
+                text="<b>[총괄] 항목별 시행/미시행 인원 분기별 비교</b>",
+                x=0.5,
+                xanchor="center"
+            ),
             xaxis=dict(
                 tickfont=dict(color="black", size=13, family="sans-serif"),
                 title=None
@@ -410,7 +414,6 @@ if uploaded_file is not None:
             drop=True
         )
         
-        # 테이블 데이터도 동일한 순서로 정렬
         res_job_df = format_stats_df(raw_job_filtered, "직군")
         st.dataframe(res_job_df, use_container_width=True)
 
@@ -452,7 +455,11 @@ if uploaded_file is not None:
 
         fig_job.update_layout(
             barmode="stack",
-            title="직군별 환자확인 이행 비율 (1차 / 2차 / 정확한 환자확인율)",
+            title=dict(
+                text="<b>직군별 환자확인 이행 비율 (1차 / 2차 / 정확한 환자확인율)</b>",
+                x=0.5,
+                xanchor="center"
+            ),
             xaxis=dict(tickfont=dict(color="black", size=13)),
             yaxis=dict(title="누적 비율 (%)", range=[0, 225]),
             bargap=0.45,
@@ -532,7 +539,11 @@ if uploaded_file is not None:
 
         fig_context.update_layout(
             barmode="stack",
-            title="상황별 환자확인 이행 비율 (1차 / 2차 / 정확한 환자확인율)",
+            title=dict(
+                text="<b>상황별 환자확인 이행 비율 (1차 / 2차 / 정확한 환자확인율)</b>",
+                x=0.5,
+                xanchor="center"
+            ),
             xaxis=dict(tickfont=dict(color="black", size=12.5)),
             yaxis=dict(title="누적 비율 (%)", range=[0, 225]),
             bargap=0.4,
@@ -616,7 +627,6 @@ if uploaded_file is not None:
                     ~sub_df["부서_소분류"].str.lower().isin(["기타", "none", "nan"])
                 ].copy()
 
-                # 이미지 순서에 맞춘 세부 부서(소분류) 정렬 적용
                 if cat == "진료과":
                     custom_order = ["화상외과", "성형외과", "재활의학과", "내과", "소아청소년과"]
                     sub_df["부서_소분류"] = pd.Categorical(
@@ -654,7 +664,7 @@ if uploaded_file is not None:
                     x="부서_소분류",
                     y="정확한확인_비율",
                     text=sub_df["정확한확인_비율"].astype(str) + "%",
-                    title=f"[{cat}] 세부 부서별 정확한 환자확인율 (%)",
+                    title=f"<b>[{cat}] 세부 부서별 정확한 환자확인율 (%)</b>",
                     labels={
                         "부서_소분류": "세부 부서",
                         "정확한확인_비율": "이행률 (%)",
@@ -663,11 +673,15 @@ if uploaded_file is not None:
                 )
                 fig_dept_sub.update_traces(textposition="outside")
                 fig_dept_sub.update_layout(
+                    title=dict(
+                        x=0.5,
+                        xanchor="center"
+                    ),
                     xaxis=dict(tickfont=dict(color="black", size=13)),
                     yaxis=dict(range=[0, 118]),
                     bargap=0.45,
                     height=450,
-                    margin=dict(l=20, r=20, t=40, b=20),
+                    margin=dict(l=20, r=20, t=50, b=20),
                 )
                 col_l4, col_m4, col_r4 = st.columns([1, 3, 1])
                 with col_m4:
@@ -718,6 +732,10 @@ if uploaded_file is not None:
             )
 
             fig_pie.update_layout(
+                title=dict(
+                    x=0.5,
+                    xanchor="center"
+                ),
                 height=450,
                 margin=dict(l=20, r=20, t=50, b=20),
                 legend=dict(
