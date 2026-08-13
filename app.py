@@ -61,7 +61,7 @@ def map_dept_detailed(dept, job):
     dept_str = str(dept).strip() if pd.notna(dept) else ""
     job_str = str(job).strip() if pd.notna(job) else ""
 
-    # 표준 부서명 명칭 정돈
+    # 부서명 정돈
     if dept_str == "일반내과":
         dept_str = "내과"
     elif dept_str == "물리치료팀":
@@ -77,7 +77,8 @@ def map_dept_detailed(dept, job):
         "내과",
         "소아청소년과",
     ]:
-        return "1. 진료과", dept_str if dept_str else "진료과"
+        sub_dept = dept_str if dept_str and dept_str != "nan" else "진료과"
+        return "1. 진료과", sub_dept
 
     # 2) 간호부: 직종이 '간호사'이거나 병동/응급실/외래 간호 부서
     elif job_str == "간호사" or dept_str in [
@@ -90,7 +91,8 @@ def map_dept_detailed(dept, job):
         "응급실",
         "화상중환자실",
     ]:
-        return "2. 간호부", dept_str if dept_str else "간호부"
+        sub_dept = dept_str if dept_str and dept_str != "nan" else "외래"
+        return "2. 간호부", sub_dept
 
     # 3) 진료지원 및 행정
     elif dept_str in ["물리치료실", "영상의학과", "수납/접수"]:
@@ -121,7 +123,6 @@ def process_excel(df_raw):
 
     raw_dept = df["상세부서명"].fillna(df["부서"])
 
-    # 부서명과 직종을 함께 조합하여 분류
     dept_res = [
         map_dept_detailed(d, j) for d, j in zip(raw_dept, df["직종"])
     ]
