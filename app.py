@@ -58,30 +58,39 @@ def map_context(item):
 
 # 3. 부서 대분류 & 소분류 매핑 (부서 + 직종 종합 판별)
 def map_dept_detailed(dept, job):
-    dept_str = str(dept).strip() if pd.notna(dept) else ""
-    job_str = str(job).strip() if pd.notna(job) else ""
+    dept_str = (
+        str(dept).strip()
+        if pd.notna(dept) and str(dept).strip() not in ["nan", "None", ""]
+        else ""
+    )
+    job_str = (
+        str(job).strip()
+        if pd.notna(job) and str(job).strip() not in ["nan", "None", ""]
+        else ""
+    )
 
-    # 부서명 정돈
-    if dept_str == "일반내과":
+    # 표준 부서명 명칭 정돈
+    if dept_str in ["일반내과", "내과"]:
         dept_str = "내과"
-    elif dept_str == "물리치료팀":
+    elif dept_str in ["물리치료팀", "물리치료실"]:
         dept_str = "물리치료실"
-    elif dept_str in ["수납계", "원무계"]:
+    elif dept_str in ["수납계", "원무계", "수납/접수"]:
         dept_str = "수납/접수"
 
-    # 1) 진료과: 직종이 '의사'이거나 진료과에 해당하는 부서
-    if job_str == "의사" or dept_str in [
-        "화상외과",
-        "성형외과",
-        "재활의학과",
-        "내과",
-        "소아청소년과",
-    ]:
-        sub_dept = dept_str if dept_str and dept_str != "nan" else "진료과"
+    # 규칙 1: 직종이 '의사'인 경우 -> '1. 진료과'
+    if job_str == "의사":
+        sub_dept = dept_str if dept_str else "진료과"
         return "1. 진료과", sub_dept
 
-    # 2) 간호부: 직종이 '간호사'이거나 병동/응급실/외래 간호 부서
-    elif job_str == "간호사" or dept_str in [
+    # 규칙 2: 직종이 '간호사'인 경우 -> '2. 간호부' (외래, 병동, 중환자실 등)
+    if job_str == "간호사":
+        sub_dept = dept_str if dept_str else "외래"
+        return "2. 간호부", sub_dept
+
+    # 규칙 3: 기타 직종의 부서별 매핑
+    if dept_str in ["화상외과", "성형외과", "재활의학과", "내과", "소아청소년과"]:
+        return "1. 진료과", dept_str
+    elif dept_str in [
         "외래",
         "신관3병동",
         "본관5병동",
@@ -91,15 +100,11 @@ def map_dept_detailed(dept, job):
         "응급실",
         "화상중환자실",
     ]:
-        sub_dept = dept_str if dept_str and dept_str != "nan" else "외래"
-        return "2. 간호부", sub_dept
-
-    # 3) 진료지원 및 행정
+        return "2. 간호부", dept_str
     elif dept_str in ["물리치료실", "영상의학과", "수납/접수"]:
         return "3. 진료지원 및 행정", dept_str
 
-    else:
-        return "4. 기타", dept_str if dept_str else "기타"
+    return "4. 기타", dept_str if dept_str else "기타"
 
 
 def process_excel(df_raw):
@@ -123,6 +128,7 @@ def process_excel(df_raw):
 
     raw_dept = df["상세부서명"].fillna(df["부서"])
 
+    # 부서명과 직종을 함께 조합하여 대분류/소분류 산출
     dept_res = [
         map_dept_detailed(d, j) for d, j in zip(raw_dept, df["직종"])
     ]
