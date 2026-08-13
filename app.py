@@ -199,16 +199,16 @@ def format_stats_df(stats, group_col):
     return result_df
 
 
-# 전체 타이틀/범례 포함 외곽 테두리 박스 생성 함수
+# paper 연장 좌표를 활용하여 상단 타이틀/하단 범례까지 포함하는 외곽 테두리 생성
 def add_chart_border(fig):
     fig.add_shape(
         type="rect",
-        xref="container",
-        yref="container",
-        x0=0.002,
-        y0=0.002,
-        x1=0.998,
-        y1=0.998,
+        xref="paper",
+        yref="paper",
+        x0=-0.05,
+        y0=-0.22,
+        x1=1.05,
+        y1=1.16,
         line=dict(color="#222222", width=2),
     )
 
@@ -409,7 +409,7 @@ if uploaded_file is not None:
             bargap=dynamic_bargap,
             bargroupgap=0.08,
             height=650,
-            margin=dict(l=40, r=40, t=90, b=80),
+            margin=dict(l=50, r=50, t=90, b=90),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
@@ -503,7 +503,7 @@ if uploaded_file is not None:
             ),
             bargap=0.45,
             height=630,
-            margin=dict(l=40, r=40, t=90, b=80),
+            margin=dict(l=50, r=50, t=90, b=90),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
@@ -604,7 +604,7 @@ if uploaded_file is not None:
             ),
             bargap=0.4,
             height=630,
-            margin=dict(l=40, r=40, t=90, b=80),
+            margin=dict(l=50, r=50, t=90, b=90),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
@@ -767,7 +767,7 @@ if uploaded_file is not None:
                     ),
                     bargap=0.5,
                     height=550,
-                    margin=dict(l=40, r=40, t=85, b=50),
+                    margin=dict(l=50, r=50, t=85, b=60),
                 )
                 add_chart_border(fig_dept_sub)
 
@@ -827,7 +827,7 @@ if uploaded_file is not None:
                     font=dict(size=28, color="black")
                 ),
                 height=550,
-                margin=dict(l=40, r=40, t=85, b=60),
+                margin=dict(l=50, r=50, t=85, b=60),
                 legend=dict(
                     orientation="h",
                     yanchor="bottom",
