@@ -403,7 +403,7 @@ if uploaded_file is not None:
             bargap=dynamic_bargap,
             bargroupgap=0.08,
             height=720,
-            margin=dict(l=80, r=100, t=100, b=160),  # 우측 여백을 100으로 확장
+            margin=dict(l=80, r=100, t=100, b=160),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
@@ -498,9 +498,7 @@ if uploaded_file is not None:
             ),
             bargap=0.45,
             height=660,
-            margin=dict(
-                l=80, r=100, t=100, b=130
-            ),  # 우측 여백(r)을 100으로 넓혀 글자 잘림 방지
+            margin=dict(l=80, r=100, t=100, b=130),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
@@ -508,7 +506,7 @@ if uploaded_file is not None:
                 xanchor="center",
                 x=0.5,
                 font=dict(size=18),
-                entrywidth=200,  # 범례 항목당 충분한 너비 부여
+                entrywidth=200,
                 entrywidthmode="pixels",
             ),
         )
@@ -604,9 +602,7 @@ if uploaded_file is not None:
             ),
             bargap=0.4,
             height=660,
-            margin=dict(
-                l=80, r=100, t=100, b=130
-            ),  # 우측 여백(r)을 100으로 넓혀 글자 잘림 방지
+            margin=dict(l=80, r=100, t=100, b=130),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
@@ -614,7 +610,7 @@ if uploaded_file is not None:
                 xanchor="center",
                 x=0.5,
                 font=dict(size=18),
-                entrywidth=200,  # 범례 항목당 충분한 너비 부여
+                entrywidth=200,
                 entrywidthmode="pixels",
             ),
         )
@@ -886,7 +882,7 @@ if uploaded_file is not None:
             st.success("🎉 모든 건에서 정확한 환자확인이 수행되었습니다!")
 
         # -------------------------------------------------------------
-        # 결과 엑셀 파일 다운로드 기능 (openpyxl 엔진 사용)
+        # 결과 엑셀 파일 다운로드 기능
         # -------------------------------------------------------------
         st.divider()
         st.subheader("📥 결과 보고서 다운로드")
