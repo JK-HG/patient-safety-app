@@ -241,7 +241,7 @@ if uploaded_file is not None:
             q for q in all_quarters_list if q != current_quarter
         ]
 
-        with st.expander(f"⚙️ **다른 분기 수치 추가 및 비교 설정**", expanded=False):
+        with st.expander(f"⚙ **다른 분기 수치 추가 및 비교 설정**", expanded=False):
             st.info(
                 "비교하고자 하는 타 분기를 선택하고 수치를 입력하세요. 입력한 분기들이 그래프에 함께 표시됩니다."
             )
@@ -797,7 +797,7 @@ if uploaded_file is not None:
         # 5. 미시행 분석 및 상세 목록
         # -------------------------------------------------------------
         st.divider()
-        st.subheader("⚠️ 정확한 환자확인 미시행 내역 및 사유 분석")
+        st.subheader("⚠ 정확한 환자확인 미시행 내역 및 사유 분석")
 
         fail_df = df[~df["정확한확인_성공"]].copy()
 
@@ -817,25 +817,23 @@ if uploaded_file is not None:
                 "1,2차 미시행": "#e06666",
             }
 
-            total_fail_count = fail_summary["건수"].sum()
+            fig_pie = px.pie(
+                fail_summary,
+                values="건수",
+                names="미시행_유형",
+                title="<b>정확한 환자확인 미시행 사유</b>",
+                color="미시행_유형",
+                color_discrete_map=color_map,
+                hole=0.3,
+            )
 
-fig_pie = px.pie(
-    fail_summary,
-    values="건수",
-    names="미시행_유형",
-    title="<b>정확한 환자확인 미시행 사유</b>",
-    color="미시행_유형",
-    color_discrete_map=color_map,
-    hole=0.4,  # 도넛 구멍 크기 조절 (0.4 정도가 가운데 글자 넣기 좋습니다)
-)
-
-fig_pie.update_traces(
-    textposition="inside",
-    textinfo="label+percent+value",
-    texttemplate="<b>%{label}</b><br>%{value}건 (%{percent})",
-    insidetextfont=dict(size=20, color="black"),
-    insidetextorientation="horizontal",
-)
+            fig_pie.update_traces(
+                textposition="inside",
+                textinfo="label+percent+value",
+                texttemplate="<b>%{label}</b><br>%{value}건 (%{percent})",
+                insidetextfont=dict(size=20, color="black"),
+                insidetextorientation="horizontal",
+            )
 
             fig_pie.update_layout(
                 title=dict(
@@ -856,37 +854,6 @@ fig_pie.update_traces(
                     font=dict(size=18),
                 ),
             )
-
-fig_pie.update_layout(
-    title=dict(
-        text="<b>정확한 환자확인 미시행 사유</b>",
-        x=0.5,
-        y=0.96,
-        xanchor="center",
-        yanchor="top",
-        font=dict(size=28, color="black"),
-    ),
-    annotations=[
-        dict(
-            text=f"<b>총<br>{total_fail_count}건</b>",
-            x=0.5,
-            y=0.5,
-            font=dict(size=22, color="black"),
-            showarrow=False,
-            align="center",
-        )
-    ],
-    height=580,
-    margin=dict(l=80, r=60, t=100, b=130),
-    legend=dict(
-        orientation="h",
-        yanchor="bottom",
-        y=-0.20,
-        xanchor="center",
-        x=0.5,
-        font=dict(size=18),
-    ),
-)
 
             col_pie_l, col_pie_m, col_pie_r = st.columns([0.5, 4, 0.5])
             with col_pie_m:
