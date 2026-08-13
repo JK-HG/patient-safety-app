@@ -29,38 +29,35 @@ def map_job(job):
     return "기타"
 
 
-# 2. 상황 대분류 & 소분류 매핑
-def map_context_detailed(item):
+# 2. 상황별 카테고리 매핑 (1~6번 단일 분류)
+def map_context(item):
     if pd.isna(item):
-        return "6. 그 외 항목", "기타"
+        return "6. 그 외 항목"
 
     item = str(item).strip()
 
-    if item == "진료 전":
-        return "1. 입원/외래진료/수납", "진료 전"
-    elif item == "기 타 - 수납 시":
-        return "1. 입원/외래진료/수납", "수납 시"
-    elif item == "기 타 - 입원 시":
-        return "1. 입원/외래진료/수납", "입원 시"
+    # 1. 입원/외래진료/수납
+    if item in ["진료 전", "기 타 - 수납 시", "기 타 - 입원 시"]:
+        return "1. 입원/외래진료/수납"
+    # 2. 투약
     elif item == "의약품 투여 전":
-        return "2. 투약", "의약품 투여 전"
+        return "2. 투약"
+    # 3. 검사/검체 채취
     elif item.startswith("검사 시행 전"):
-        sub_name = (
-            item.replace("검사 시행 전 - ", "")
-            if " - " in item
-            else "검사 시행 전"
-        )
-        return "3. 검사/검체 채취", sub_name
-    elif item.startswith("처치 및 시술 전"):
-        return "4. 처치/수술/수혈", "처치 및 시술 전"
-    elif item.startswith("혈액제제 투여 전"):
-        return "4. 처치/수술/수혈", "혈액제제 투여 전"
-    elif "수술전" in item:
-        return "4. 처치/수술/수혈", "수술 전"
+        return "3. 검사/검체 채취"
+    # 4. 처치/수술/수혈
+    elif (
+        item.startswith("처치 및 시술 전")
+        or item.startswith("혈액제제 투여 전")
+        or "수술전" in item
+    ):
+        return "4. 처치/수술/수혈"
+    # 5. 물리치료
     elif item == "기 타 - 물리치료":
-        return "5. 물리치료", "물리치료"
+        return "5. 물리치료"
+    # 6. 그 외 항목
     else:
-        return "6. 그 외 항목", item
+        return "6. 그 외 항목"
 
 
 # 3. 부서 대분류 & 소분류 매핑
@@ -108,7 +105,7 @@ def map_dept_detailed(dept):
 
 
 def process_excel(df_raw):
-    # 헤더 자동 찾기
+    # 헤더 자동 인식
     if "NO" not in df_raw.columns:
         for idx, row in df_raw.iterrows():
             if "NO" in row.values:
@@ -118,7 +115,7 @@ def process_excel(df_raw):
 
     df = df_raw.dropna(subset=["NO"]).copy()
 
-    # 1차, 2차, 최종 성공 여부 판단
+    # 1차, 2차, 최종 정확한 환자확인 판정
     df["1차확인_성공"] = df["이름확인"].astype(str).str.strip() == "시행"
     df["2차확인_성공"] = (
         df["등록번호 확인"].astype(str).str.strip() == "시행"
@@ -127,11 +124,7 @@ def process_excel(df_raw):
 
     # 파생 변수
     df["직군"] = df["직종"].apply(map_job)
-
-    # 상황 분류
-    context_res = df["환자확인사항"].apply(map_context_detailed)
-    df["상황_대분류"] = [r[0] for r in context_res]
-    df["상황_소분류"] = [r[1] for r in context_res]
+    df["상황"] = df["환자확인사항"].apply(map_context)
 
     # 부서 분류
     raw_dept = df["상세부서명"].fillna(df["부서"])
@@ -143,7 +136,7 @@ def process_excel(df_raw):
 
 
 def calc_stats_flat(df, group_col):
-    """단일 컬럼 집계 (직군용)"""
+    """단일 항목 집계 (직군용, 상황용)"""
     stats = (
         df.groupby(group_col)
         .agg(
@@ -154,6 +147,9 @@ def calc_stats_flat(df, group_col):
         )
         .reset_index()
     )
+
+    if group_col == "상황":
+        stats = stats.sort_values(by=group_col).reset_index(drop=True)
 
     stats["1차확인 비율"] = (
         (stats["차1확인_성공"] / stats["전체건수"] * 100).round(1).astype(str) + "%"
@@ -189,7 +185,7 @@ def calc_stats_flat(df, group_col):
 
 
 def calc_stats_hierarchy(df, main_col, sub_col, main_name):
-    """대분류 & 소분류 계층형 집계 (부서 및 상황용)"""
+    """대분류 & 소분류 계층형 집계 (부서용)"""
     stats = (
         df.groupby([main_col, sub_col])
         .agg(
@@ -217,8 +213,8 @@ def calc_stats_hierarchy(df, main_col, sub_col, main_name):
     )
 
     result_df = pd.DataFrame()
-    result_df[main_name + " 구분"] = stats[main_col]
-    result_df["세부 항목(소분류)"] = (
+    result_df[main_name + " 대분류"] = stats[main_col]
+    result_df["세부 부서(소분류)"] = (
         stats[sub_col].astype(str) + " (" + stats["전체건수"].astype(str) + "건)"
     )
     result_df["1차 환자성명 확인"] = (
@@ -268,15 +264,13 @@ if uploaded_file is not None:
         res_job = calc_stats_flat(df, "직군")
         st.dataframe(res_job, use_container_width=True)
 
-        # 2. 상황별
-        st.subheader("📋 2) 상황별 세부 항목 정확한 환자 확인")
-        res_context = calc_stats_hierarchy(
-            df, "상황_대분류", "상황_소분류", "상황"
-        )
+        # 2. 상황별 (1~6번 대분류 항목별)
+        st.subheader("📋 2) 상황별 정확한 환자 확인")
+        res_context = calc_stats_flat(df, "상황")
         st.dataframe(res_context, use_container_width=True)
 
-        # 3. 부서별
-        st.subheader("🏥 3) 부서 대분류 및 세부 부서별 정확한 환자 확인")
+        # 3. 부서별 (4개 대분류 + 세부 부서별)
+        st.subheader("🏥 3) 부서별(대분류/소분류) 정확한 환자 확인")
         res_dept = calc_stats_hierarchy(df, "부서_대분류", "부서_소분류", "부서")
         st.dataframe(res_dept, use_container_width=True)
 
