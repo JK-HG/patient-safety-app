@@ -793,7 +793,7 @@ if uploaded_file is not None:
                             fig_dept_sub, use_container_width=True
                         )
 
-        # -------------------------------------------------------------
+       # -------------------------------------------------------------
         # 5. 미시행 분석 및 상세 목록
         # -------------------------------------------------------------
         st.divider()
@@ -802,14 +802,13 @@ if uploaded_file is not None:
         fail_df = df[~df["정확한확인_성공"]].copy()
 
         if len(fail_df) > 0:
-            fail_df["미시행_유형"] = fail_df.apply(
-                classify_fail_reason, axis=1
-            )
+            # 1. 미시행 사유 분류
+            fail_df["미시행_유형"] = fail_df.apply(classify_fail_reason, axis=1)
 
-            fail_summary = (
-                fail_df["미시행_유형"].value_counts().reset_index()
-            )
+            # 2. 데이터 집계
+            fail_summary = fail_df["미시행_유형"].value_counts().reset_index()
             fail_summary.columns = ["미시행_유형", "건수"]
+            total_fail_count = fail_summary["건수"].sum()
 
             color_map = {
                 "1차 미시행": "#ff9999",
@@ -817,70 +816,56 @@ if uploaded_file is not None:
                 "1,2차 미시행": "#e06666",
             }
 
+            # 3. 도넛 차트 생성
             fig_pie = px.pie(
                 fail_summary,
                 values="건수",
                 names="미시행_유형",
-                title="<b>정확한 환자확인 미시행 사유</b>",
                 color="미시행_유형",
                 color_discrete_map=color_map,
-                hole=0.3,
+                hole=0.4,
             )
 
+            # 4. 차트 레이아웃 및 텍스트 설정
             fig_pie.update_traces(
                 textposition="inside",
-                textinfo="label+percent+value",
-                texttemplate="<b>%{label}</b><br>%{value}건 (%{percent})",
-                insidetextfont=dict(size=20, color="black"),
-                insidetextorientation="horizontal",
+                textinfo="label+percent", # 값은 중앙에 표시하므로 여기선 레이블과 퍼센트만
+                texttemplate="<b>%{label}</b><br>%{percent}",
+                insidetextfont=dict(size=16, color="black"),
             )
 
             fig_pie.update_layout(
                 title=dict(
-                    x=0.5,
-                    y=0.96,
-                    xanchor="center",
-                    yanchor="top",
-                    font=dict(size=28, color="black"),
+                    text="<b>정확한 환자확인 미시행 사유</b>",
+                    x=0.5, y=0.95, xanchor="center", yanchor="top",
+                    font=dict(size=22)
                 ),
-                height=580,
-                margin=dict(l=80, r=60, t=100, b=130),
-                legend=dict(
-                    orientation="h",
-                    yanchor="bottom",
-                    y=-0.20,
-                    xanchor="center",
-                    x=0.5,
-                    font=dict(size=18),
-                ),
+                annotations=[
+                    dict(
+                        text=f"총<br><b>{total_fail_count}건</b>",
+                        x=0.5, y=0.5, font=dict(size=20, color="black"),
+                        showarrow=False
+                    )
+                ],
+                height=500,
+                margin=dict(l=20, r=20, t=60, b=20),
+                legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5)
             )
 
-            col_pie_l, col_pie_m, col_pie_r = st.columns([0.5, 4, 0.5])
+            # 5. 화면 출력
+            col_pie_l, col_pie_m, col_pie_r = st.columns([0.1, 0.8, 0.1])
             with col_pie_m:
-                with st.container(border=True):
-                    st.plotly_chart(fig_pie, use_container_width=True)
-
+                st.plotly_chart(fig_pie, use_container_width=True)
+            
+            st.markdown("---")
             st.markdown("#### 📋 미시행 상세 목록")
-            show_fail_df = fail_df[
-                [
-                    "NO",
-                    "부서_대분류",
-                    "부서_소분류",
-                    "직종",
-                    "이름",
-                    "환자확인사항",
-                    "이름확인",
-                    "등록번호 확인",
-                    "생년월일 확인",
-                    "미시행_유형",
-                    "미시행 사유 또는 기타사항",
-                ]
-            ]
-            st.dataframe(show_fail_df, use_container_width=True)
-
+            st.dataframe(
+                fail_df[["환자명", "등록번호", "검사명", "미시행_유형", "일시"]],
+                use_container_width=True
+            )
         else:
-            st.success("🎉 모든 건에서 정확한 환자확인이 수행되었습니다!")
-
+            st.success("🎉 미시행 내역이 없습니다.")
+            
         # -------------------------------------------------------------
         # 결과 엑셀 파일 다운로드 기능
         # -------------------------------------------------------------
