@@ -199,16 +199,16 @@ def format_stats_df(stats, group_col):
     return result_df
 
 
-# paper 연장 좌표를 활용하여 상단 타이틀/하단 범례까지 포함하는 외곽 테두리 생성
+# paper 연장 좌표 및 여백 최적화로 잘림 없는 외곽 테두리 생성
 def add_chart_border(fig):
     fig.add_shape(
         type="rect",
         xref="paper",
         yref="paper",
-        x0=-0.05,
-        y0=-0.22,
-        x1=1.05,
-        y1=1.16,
+        x0=-0.04,
+        y0=-0.16,
+        x1=1.04,
+        y1=1.12,
         line=dict(color="#222222", width=2),
     )
 
@@ -402,18 +402,18 @@ if uploaded_file is not None:
                 title=None
             ),
             yaxis=dict(
-                title=dict(text="인원 수 (명)", font=dict(size=20, color="black")),
+                title=None,
                 tickfont=dict(size=18, color="black"),
                 range=[0, max_total * 1.20]
             ),
             bargap=dynamic_bargap,
             bargroupgap=0.08,
             height=650,
-            margin=dict(l=50, r=50, t=90, b=90),
+            margin=dict(l=60, r=60, t=90, b=110),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.18,
+                y=-0.16,
                 xanchor="center",
                 x=0.5,
                 font=dict(size=18),
@@ -497,17 +497,17 @@ if uploaded_file is not None:
             ),
             xaxis=dict(tickfont=dict(color="black", size=20)),
             yaxis=dict(
-                title=dict(text="누적 비율 (%)", font=dict(size=20, color="black")), 
+                title=None,
                 tickfont=dict(size=18, color="black"),
                 range=[0, 235]
             ),
             bargap=0.45,
             height=630,
-            margin=dict(l=50, r=50, t=90, b=90),
+            margin=dict(l=60, r=60, t=90, b=110),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.18,
+                y=-0.16,
                 xanchor="center",
                 x=0.5,
                 font=dict(size=18)
@@ -598,17 +598,17 @@ if uploaded_file is not None:
             ),
             xaxis=dict(tickfont=dict(color="black", size=20)),
             yaxis=dict(
-                title=dict(text="누적 비율 (%)", font=dict(size=20, color="black")), 
+                title=None,
                 tickfont=dict(size=18, color="black"),
                 range=[0, 235]
             ),
             bargap=0.4,
             height=630,
-            margin=dict(l=50, r=50, t=90, b=90),
+            margin=dict(l=60, r=60, t=90, b=110),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.18,
+                y=-0.16,
                 xanchor="center",
                 x=0.5,
                 font=dict(size=18)
@@ -767,7 +767,7 @@ if uploaded_file is not None:
                     ),
                     bargap=0.5,
                     height=550,
-                    margin=dict(l=50, r=50, t=85, b=60),
+                    margin=dict(l=60, r=60, t=85, b=90),
                 )
                 add_chart_border(fig_dept_sub)
 
@@ -827,7 +827,7 @@ if uploaded_file is not None:
                     font=dict(size=28, color="black")
                 ),
                 height=550,
-                margin=dict(l=50, r=50, t=85, b=60),
+                margin=dict(l=60, r=60, t=85, b=90),
                 legend=dict(
                     orientation="h",
                     yanchor="bottom",
