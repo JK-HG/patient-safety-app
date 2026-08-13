@@ -331,28 +331,32 @@ if uploaded_file is not None:
                     x=categories,
                     y=[p1, p2, fin],
                     text=[
-                        f"[{q_name}]<br>시행: {p1}명<br>({p1_pct}%)",
-                        f"[{q_name}]<br>시행: {p2}명<br>({p2_pct}%)",
-                        f"[{q_name}]<br>시행: {fin}명<br>({fin_pct}%)",
+                        f"<b>{p1}명</b><br>({p1_pct}%)",
+                        f"<b>{p2}명</b><br>({p2_pct}%)",
+                        f"<b>{fin}명</b><br>({fin_pct}%)",
                     ],
                     textposition="inside",
+                    insidetextfont=dict(size=13, color="white"),
                     marker_color=pass_color,
                     offsetgroup=q_name,
                 )
             )
 
-            # 미시행 막대
+            # 미시행 막대 (글자 크기 고정을 위해 상단/내부 텍스트 제어)
+            fail_p1, fail_p2, fail_fin = tot - p1, tot - p2, tot - fin
+            
             fig_total.add_trace(
                 go.Bar(
                     name=f"{q_name} (미시행)",
                     x=categories,
-                    y=[tot - p1, tot - p2, tot - fin],
+                    y=[fail_p1, fail_p2, fail_fin],
                     text=[
-                        f"미시행:<br>{tot - p1}명",
-                        f"미시행:<br>{tot - p2}명",
-                        f"미시행:<br>{tot - fin}명",
+                        f"<b>미시행: {fail_p1}명</b>" if fail_p1 > 0 else "",
+                        f"<b>미시행: {fail_p2}명</b>" if fail_p2 > 0 else "",
+                        f"<b>미시행: {fail_fin}명</b>" if fail_fin > 0 else "",
                     ],
-                    textposition="inside",
+                    textposition="outside",  # 미시행 수치가 작아도 잘 보이도록 막대 위에 선명히 표시
+                    outsidetextfont=dict(size=12, color="#d9534f"),
                     marker_color=fail_color,
                     offsetgroup=q_name,
                     base=[p1, p2, fin],
@@ -364,22 +368,29 @@ if uploaded_file is not None:
         fig_total.update_layout(
             barmode="group",
             title="<b>[총괄] 항목별 시행/미시행 인원 분기별 비교</b>",
-            xaxis=dict(tickfont=dict(color="black", size=13)),
-            yaxis=dict(title="인원 수 (명)", range=[200, max_total * 1.05]),  # 세로축 최소값을 200으로 설정
-            bargap=0.35,
-            bargroupgap=0.1,
-            height=580,  # 세로 비율을 늘려 직관적인 비율 적용
+            xaxis=dict(
+                tickfont=dict(color="black", size=13, family="sans-serif"),
+                title=None
+            ),
+            yaxis=dict(
+                title="인원 수 (명)",
+                range=[200, max_total * 1.08] # y축 200부터 시작하여 대비 극대화
+            ),
+            bargap=0.3,
+            bargroupgap=0.08,
+            height=580,
             margin=dict(l=20, r=20, t=50, b=20),
+            uniformtext_minsize=12,  # 글자 크기 최솟값을 12pt로 고정하여 찌그러짐 방지
+            uniformtext_mode="show",
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.25,
+                y=-0.22,
                 xanchor="center",
                 x=0.5,
             ),
         )
 
-        # 다른 그래프들과 동일한 가로/세로 비율 조정을 위해 컬럼 레이아웃 적용
         col_l1, col_m1, col_r1 = st.columns([1, 3, 1])
         with col_m1:
             st.plotly_chart(fig_total, use_container_width=True)
