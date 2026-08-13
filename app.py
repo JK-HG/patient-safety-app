@@ -56,29 +56,31 @@ def map_context(item):
         return "6. 그 외 항목"
 
 
-# 3. 부서 대분류 & 소분류 매핑
-def map_dept_detailed(dept):
-    if pd.isna(dept):
-        return "4. 기타", "기타"
+# 3. 부서 대분류 & 소분류 매핑 (부서 + 직종 종합 판별)
+def map_dept_detailed(dept, job):
+    dept_str = str(dept).strip() if pd.notna(dept) else ""
+    job_str = str(job).strip() if pd.notna(job) else ""
 
-    dept = str(dept).strip()
+    # 표준 부서명 명칭 정돈
+    if dept_str == "일반내과":
+        dept_str = "내과"
+    elif dept_str == "물리치료팀":
+        dept_str = "물리치료실"
+    elif dept_str in ["수납계", "원무계"]:
+        dept_str = "수납/접수"
 
-    if dept == "일반내과":
-        dept = "내과"
-    elif dept == "물리치료팀":
-        dept = "물리치료실"
-    elif dept in ["수납계", "원무계"]:
-        dept = "수납/접수"
-
-    if dept in [
+    # 1) 진료과: 직종이 '의사'이거나 진료과에 해당하는 부서
+    if job_str == "의사" or dept_str in [
         "화상외과",
         "성형외과",
         "재활의학과",
         "내과",
         "소아청소년과",
     ]:
-        return "1. 진료과", dept
-    elif dept in [
+        return "1. 진료과", dept_str if dept_str else "진료과"
+
+    # 2) 간호부: 직종이 '간호사'이거나 병동/응급실/외래 간호 부서
+    elif job_str == "간호사" or dept_str in [
         "외래",
         "신관3병동",
         "본관5병동",
@@ -88,11 +90,14 @@ def map_dept_detailed(dept):
         "응급실",
         "화상중환자실",
     ]:
-        return "2. 간호부", dept
-    elif dept in ["물리치료실", "영상의학과", "수납/접수"]:
-        return "3. 진료지원 및 행정", dept
+        return "2. 간호부", dept_str if dept_str else "간호부"
+
+    # 3) 진료지원 및 행정
+    elif dept_str in ["물리치료실", "영상의학과", "수납/접수"]:
+        return "3. 진료지원 및 행정", dept_str
+
     else:
-        return "4. 기타", dept
+        return "4. 기타", dept_str if dept_str else "기타"
 
 
 def process_excel(df_raw):
@@ -115,7 +120,11 @@ def process_excel(df_raw):
     df["상황"] = df["환자확인사항"].apply(map_context)
 
     raw_dept = df["상세부서명"].fillna(df["부서"])
-    dept_res = raw_dept.apply(map_dept_detailed)
+
+    # 부서명과 직종을 함께 조합하여 분류
+    dept_res = [
+        map_dept_detailed(d, j) for d, j in zip(raw_dept, df["직종"])
+    ]
     df["부서_대분류"] = [r[0] for r in dept_res]
     df["부서_소분류"] = [r[1] for r in dept_res]
 
@@ -244,7 +253,7 @@ if uploaded_file is not None:
         fig_total.update_layout(
             barmode="stack",
             title="총괄 항목별 시행/미시행 인원 비교",
-            xaxis=dict(tickfont=dict(color="black", size=13)),  # 검정 글씨 & 폰트 확대
+            xaxis=dict(tickfont=dict(color="black", size=13)),
             yaxis=dict(title="인원 수 (명)", range=[y_min, total_count + 10]),
             bargap=0.45,
             height=480,
@@ -314,7 +323,7 @@ if uploaded_file is not None:
         fig_job.update_layout(
             barmode="stack",
             title="직군별 환자확인 이행 비율 (1차 / 2차 / 정확한 환자확인율)",
-            xaxis=dict(tickfont=dict(color="black", size=13)),  # 검정 글씨 & 폰트 확대
+            xaxis=dict(tickfont=dict(color="black", size=13)),
             yaxis=dict(title="누적 비율 (%)", range=[0, 225]),
             bargap=0.45,
             height=500,
@@ -394,7 +403,7 @@ if uploaded_file is not None:
         fig_context.update_layout(
             barmode="stack",
             title="상황별 환자확인 이행 비율 (1차 / 2차 / 정확한 환자확인율)",
-            xaxis=dict(tickfont=dict(color="black", size=12.5)),  # 검정 글씨 & 폰트 확대
+            xaxis=dict(tickfont=dict(color="black", size=12.5)),
             yaxis=dict(title="누적 비율 (%)", range=[0, 225]),
             bargap=0.4,
             height=520,
@@ -504,9 +513,7 @@ if uploaded_file is not None:
                 )
                 fig_dept_sub.update_traces(textposition="outside")
                 fig_dept_sub.update_layout(
-                    xaxis=dict(
-                        tickfont=dict(color="black", size=13)
-                    ),  # 검정 글씨 & 폰트 확대
+                    xaxis=dict(tickfont=dict(color="black", size=13)),
                     yaxis=dict(range=[0, 118]),
                     bargap=0.45,
                     height=450,
