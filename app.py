@@ -56,10 +56,10 @@ def map_context(item):
         return "6. 그 외 항목"
 
 
-# 3. 부서 대분류 & 소분류 매핑
+# 3. 부서 대분류 & 소분류 매핑 (3. 진료지원 및 행정 통합 반영)
 def map_dept_detailed(dept):
     if pd.isna(dept):
-        return "5. 기타", "기타"
+        return "4. 기타", "기타"
 
     dept = str(dept).strip()
 
@@ -67,6 +67,8 @@ def map_dept_detailed(dept):
         dept = "내과"
     elif dept == "물리치료팀":
         dept = "물리치료실"
+    elif dept in ["수납계", "원무계"]:
+        dept = "수납/접수"
 
     if dept in [
         "화상외과",
@@ -87,12 +89,10 @@ def map_dept_detailed(dept):
         "화상중환자실",
     ]:
         return "2. 간호부", dept
-    elif dept in ["물리치료실", "영상의학과"]:
-        return "3. 진료지원", dept
-    elif dept in ["수납계", "원무계"]:
-        return "4. 행정", dept
+    elif dept in ["물리치료실", "영상의학과", "수납/접수"]:
+        return "3. 진료지원 및 행정", dept
     else:
-        return "5. 기타", dept
+        return "4. 기타", dept
 
 
 def process_excel(df_raw):
@@ -204,7 +204,6 @@ if uploaded_file is not None:
         p2_pct = round(p2_count / total_count * 100, 1) if total_count > 0 else 0
         final_pct = round(final_count / total_count * 100, 1) if total_count > 0 else 0
 
-        # 총괄 현황 누적 막대그래프
         fig_total = go.Figure()
         fig_total.add_trace(
             go.Bar(
@@ -239,20 +238,18 @@ if uploaded_file is not None:
             )
         )
 
-        # 미시행 차이가 도드라지도록 Y축 최소범위 설정
         min_val = min(p1_count, p2_count, final_count)
         y_min = max(0, min_val - max(15, int(total_count * 0.15)))
 
         fig_total.update_layout(
             barmode="stack",
-            title="총괄 항목별 시행/미시행 인원 비교 (Y축 하단 범위 조절)",
+            title="총괄 항목별 시행/미시행 인원 비교",
             yaxis=dict(title="인원 수 (명)", range=[y_min, total_count + 10]),
-            bargap=0.45,  # 가로 막대 두께 슬림화
+            bargap=0.45,
             height=480,
             margin=dict(l=20, r=20, t=50, b=20),
         )
 
-        # 중앙 배치를 위한 컬럼 활용 (슬림한 스케일 지원)
         col_left, col_mid, col_right = st.columns([1, 3, 1])
         with col_mid:
             st.plotly_chart(fig_total, use_container_width=True)
@@ -263,25 +260,31 @@ if uploaded_file is not None:
         # 2. 직군별 정확한 환자 확인
         # -------------------------------------------------------------
         st.subheader("👥 2) 직군별 정확한 환자 확인")
-        job_order = ["의사", "간호", "진료지원", "행정"]
         raw_job = calc_stats_raw(df, "직군")
 
-        raw_job["직군"] = pd.Categorical(
-            raw_job["직군"], categories=job_order, ordered=True
+        # 기타/none 제거 및 주요 4개 직군만 정렬
+        job_order = ["의사", "간호", "진료지원", "행정"]
+        raw_job_filtered = raw_job[raw_job["직군"].isin(job_order)].copy()
+        raw_job_filtered["직군"] = pd.Categorical(
+            raw_job_filtered["직군"], categories=job_order, ordered=True
         )
-        raw_job = raw_job.sort_values("직군").reset_index(drop=True)
+        raw_job_filtered = raw_job_filtered.sort_values("직군").reset_index(
+            drop=True
+        )
 
         res_job_df = format_stats_df(raw_job, "직군")
         st.dataframe(res_job_df, use_container_width=True)
 
-        # 직군별 누적 막대그래프 (1차, 2차 + 상단에 최종 정확한 환자확인율 표시)
+        # 직군별 누적 막대그래프 (기타 제외됨)
         fig_job = go.Figure()
         fig_job.add_trace(
             go.Bar(
                 name="1차 확인 비율 (%)",
-                x=raw_job["직군"],
-                y=raw_job["1차확인_비율"],
-                text=[f"1차: {val}%" for val in raw_job["1차확인_비율"]],
+                x=raw_job_filtered["직군"],
+                y=raw_job_filtered["1차확인_비율"],
+                text=[
+                    f"1차: {val}%" for val in raw_job_filtered["1차확인_비율"]
+                ],
                 textposition="inside",
                 marker_color="#3366cc",
             )
@@ -289,16 +292,17 @@ if uploaded_file is not None:
         fig_job.add_trace(
             go.Bar(
                 name="2차 확인 비율 (%)",
-                x=raw_job["직군"],
-                y=raw_job["2차확인_비율"],
-                text=[f"2차: {val}%" for val in raw_job["2차확인_비율"]],
+                x=raw_job_filtered["직군"],
+                y=raw_job_filtered["2차확인_비율"],
+                text=[
+                    f"2차: {val}%" for val in raw_job_filtered["2차확인_비율"]
+                ],
                 textposition="inside",
                 marker_color="#109618",
             )
         )
 
-        # 최상단에 [정확한 환자확인율] 주석/텍스트 추가
-        for idx, row in raw_job.iterrows():
+        for idx, row in raw_job_filtered.iterrows():
             total_height = row["1차확인_비율"] + row["2차확인_비율"]
             fig_job.add_annotation(
                 x=row["직군"],
@@ -328,19 +332,39 @@ if uploaded_file is not None:
         # -------------------------------------------------------------
         st.subheader("📋 3) 상황별 정확한 환자 확인")
         raw_context = calc_stats_raw(df, "상황")
-        raw_context = raw_context.sort_values("상황").reset_index(drop=True)
+
+        # 기타/none/6. 그 외 항목 제거
+        context_order = [
+            "1. 입원/외래진료/수납",
+            "2. 투약",
+            "3. 검사/검체 채취",
+            "4. 처치/수술/수혈",
+            "5. 물리치료",
+        ]
+        raw_context_filtered = raw_context[
+            raw_context["상황"].isin(context_order)
+        ].copy()
+        raw_context_filtered["상황"] = pd.Categorical(
+            raw_context_filtered["상황"], categories=context_order, ordered=True
+        )
+        raw_context_filtered = raw_context_filtered.sort_values(
+            "상황"
+        ).reset_index(drop=True)
 
         res_context_df = format_stats_df(raw_context, "상황")
         st.dataframe(res_context_df, use_container_width=True)
 
-        # 상황별 누적 막대그래프
+        # 상황별 누적 막대그래프 (그 외 항목 제외됨)
         fig_context = go.Figure()
         fig_context.add_trace(
             go.Bar(
                 name="1차 확인 비율 (%)",
-                x=raw_context["상황"],
-                y=raw_context["1차확인_비율"],
-                text=[f"1차: {val}%" for val in raw_context["1차확인_비율"]],
+                x=raw_context_filtered["상황"],
+                y=raw_context_filtered["1차확인_비율"],
+                text=[
+                    f"1차: {val}%"
+                    for val in raw_context_filtered["1차확인_비율"]
+                ],
                 textposition="inside",
                 marker_color="#3366cc",
             )
@@ -348,16 +372,18 @@ if uploaded_file is not None:
         fig_context.add_trace(
             go.Bar(
                 name="2차 확인 비율 (%)",
-                x=raw_context["상황"],
-                y=raw_context["2차확인_비율"],
-                text=[f"2차: {val}%" for val in raw_context["2차확인_비율"]],
+                x=raw_context_filtered["상황"],
+                y=raw_context_filtered["2차확인_비율"],
+                text=[
+                    f"2차: {val}%"
+                    for val in raw_context_filtered["2차확인_비율"]
+                ],
                 textposition="inside",
                 marker_color="#109618",
             )
         )
 
-        # 최상단에 [정확한 환자확인율] 추가
-        for idx, row in raw_context.iterrows():
+        for idx, row in raw_context_filtered.iterrows():
             total_height = row["1차확인_비율"] + row["2차확인_비율"]
             fig_context.add_annotation(
                 x=row["상황"],
@@ -437,12 +463,37 @@ if uploaded_file is not None:
         st.dataframe(res_dept_df, use_container_width=True)
 
         st.markdown("#### 📈 대분류별 세부 부서 이행률 막대그래프")
-        dept_categories = sorted(raw_dept_sub["부서_대분류"].unique())
+
+        # 4. 기타 및 none 제외된 대분류 항목만 추출 (1. 진료과, 2. 간호부, 3. 진료지원 및 행정)
+        valid_categories = ["1. 진료과", "2. 간호부", "3. 진료지원 및 행정"]
+        dept_categories = [
+            c
+            for c in sorted(raw_dept_sub["부서_대분류"].unique())
+            if c in valid_categories
+        ]
 
         tabs = st.tabs(dept_categories)
         for tab, cat in zip(tabs, dept_categories):
             with tab:
-                sub_df = raw_dept_sub[raw_dept_sub["부서_대분류"] == cat]
+                sub_df = raw_dept_sub[raw_dept_sub["부서_대분류"] == cat].copy()
+
+                # '기타', 'none' 세부부서 제거
+                sub_df = sub_df[
+                    ~sub_df["부서_소분류"].str.lower().isin(["기타", "none", "nan"])
+                ].copy()
+
+                # '3. 진료지원 및 행정' 카테고리 순서 고정: 물리치료실 -> 영상의학과 -> 수납/접수
+                if cat == "3. 진료지원 및 행정":
+                    custom_order = ["물리치료실", "영상의학과", "수납/접수"]
+                    sub_df["부서_소분류"] = pd.Categorical(
+                        sub_df["부서_소분류"],
+                        categories=custom_order,
+                        ordered=True,
+                    )
+                    sub_df = sub_df.sort_values("부서_소분류").reset_index(
+                        drop=True
+                    )
+
                 fig_dept_sub = px.bar(
                     sub_df,
                     x="부서_소분류",
@@ -458,7 +509,7 @@ if uploaded_file is not None:
                 fig_dept_sub.update_traces(textposition="outside")
                 fig_dept_sub.update_layout(
                     yaxis=dict(range=[0, 118]),
-                    bargap=0.45,  # 막대 폭 슬림화
+                    bargap=0.45,
                     height=450,
                     margin=dict(l=20, r=20, t=40, b=20),
                 )
