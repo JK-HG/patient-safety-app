@@ -199,16 +199,28 @@ def format_stats_df(stats, group_col):
     return result_df
 
 
-# 타이틀과 범례를 충분히 감싸도록 상/하단 범위를 넓힌 외곽 테두리 함수
-def add_chart_border(fig):
+# 동적 여백 계산으로 모든 그래프의 글자 겹침을 방지하는 외곽 테두리 함수
+def add_chart_border(fig, pad=4):
+    height = fig.layout.height or 650
+    margin = fig.layout.margin
+    t = margin.t if (margin and margin.t is not None) else 100
+    b = margin.b if (margin and margin.b is not None) else 130
+
+    plot_h = height - t - b
+    if plot_h <= 0:
+        plot_h = 300
+
+    y1 = 1.0 + (t - pad) / plot_h
+    y0 = 0.0 - (b - pad) / plot_h
+
     fig.add_shape(
         type="rect",
         xref="paper",
         yref="paper",
         x0=-0.05,
-        y0=-0.26,
+        y0=y0,
         x1=1.05,
-        y1=1.22,
+        y1=y1,
         line=dict(color="#222222", width=2),
     )
 
@@ -395,6 +407,7 @@ if uploaded_file is not None:
                 x=0.5,
                 y=0.96,
                 xanchor="center",
+                yanchor="top",
                 font=dict(size=28, color="black")
             ),
             xaxis=dict(
@@ -431,7 +444,7 @@ if uploaded_file is not None:
         st.divider()
 
         # -------------------------------------------------------------
-        # 2. 직군별 정확한 환자 확인
+        # 2. 직군별 정확한 환자 확인 (픽스)
         # -------------------------------------------------------------
         st.subheader("👥 2) 직군별 정확한 환자 확인")
         raw_job = calc_stats_raw(df, "직군")
@@ -493,6 +506,7 @@ if uploaded_file is not None:
                 x=0.5,
                 y=0.96,
                 xanchor="center",
+                yanchor="top",
                 font=dict(size=28, color="black")
             ),
             xaxis=dict(tickfont=dict(color="black", size=20)),
@@ -594,6 +608,7 @@ if uploaded_file is not None:
                 x=0.5,
                 y=0.96,
                 xanchor="center",
+                yanchor="top",
                 font=dict(size=28, color="black")
             ),
             xaxis=dict(tickfont=dict(color="black", size=20)),
@@ -753,6 +768,7 @@ if uploaded_file is not None:
                         x=0.5,
                         y=0.96,
                         xanchor="center",
+                        yanchor="top",
                         font=dict(size=28, color="black")
                     ),
                     xaxis=dict(
@@ -824,6 +840,7 @@ if uploaded_file is not None:
                     x=0.5,
                     y=0.96,
                     xanchor="center",
+                    yanchor="top",
                     font=dict(size=28, color="black")
                 ),
                 height=580,
