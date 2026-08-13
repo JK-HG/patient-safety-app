@@ -199,16 +199,16 @@ def format_stats_df(stats, group_col):
     return result_df
 
 
-# paper 연장 좌표 및 여백 최적화로 잘림 없는 외곽 테두리 생성
+# 타이틀과 범례를 충분히 감싸도록 상/하단 범위를 넓힌 외곽 테두리 함수
 def add_chart_border(fig):
     fig.add_shape(
         type="rect",
         xref="paper",
         yref="paper",
-        x0=-0.04,
-        y0=-0.16,
-        x1=1.04,
-        y1=1.12,
+        x0=-0.05,
+        y0=-0.26,
+        x1=1.05,
+        y1=1.22,
         line=dict(color="#222222", width=2),
     )
 
@@ -393,7 +393,7 @@ if uploaded_file is not None:
             title=dict(
                 text="<b>정확한 환자 확인율</b>",
                 x=0.5,
-                y=0.94,
+                y=0.96,
                 xanchor="center",
                 font=dict(size=28, color="black")
             ),
@@ -408,12 +408,12 @@ if uploaded_file is not None:
             ),
             bargap=dynamic_bargap,
             bargroupgap=0.08,
-            height=650,
-            margin=dict(l=60, r=60, t=90, b=110),
+            height=680,
+            margin=dict(l=60, r=60, t=100, b=130),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.16,
+                y=-0.20,
                 xanchor="center",
                 x=0.5,
                 font=dict(size=18),
@@ -491,7 +491,7 @@ if uploaded_file is not None:
             title=dict(
                 text="<b>직군별 정확한 환자 확인율</b>",
                 x=0.5,
-                y=0.94,
+                y=0.96,
                 xanchor="center",
                 font=dict(size=28, color="black")
             ),
@@ -502,12 +502,12 @@ if uploaded_file is not None:
                 range=[0, 235]
             ),
             bargap=0.45,
-            height=630,
-            margin=dict(l=60, r=60, t=90, b=110),
+            height=660,
+            margin=dict(l=60, r=60, t=100, b=130),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.16,
+                y=-0.20,
                 xanchor="center",
                 x=0.5,
                 font=dict(size=18)
@@ -592,7 +592,7 @@ if uploaded_file is not None:
             title=dict(
                 text="<b>상황별 정확한 환자 확인율</b>",
                 x=0.5,
-                y=0.94,
+                y=0.96,
                 xanchor="center",
                 font=dict(size=28, color="black")
             ),
@@ -603,12 +603,12 @@ if uploaded_file is not None:
                 range=[0, 235]
             ),
             bargap=0.4,
-            height=630,
-            margin=dict(l=60, r=60, t=90, b=110),
+            height=660,
+            margin=dict(l=60, r=60, t=100, b=130),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.16,
+                y=-0.20,
                 xanchor="center",
                 x=0.5,
                 font=dict(size=18)
@@ -751,7 +751,7 @@ if uploaded_file is not None:
                 fig_dept_sub.update_layout(
                     title=dict(
                         x=0.5,
-                        y=0.92,
+                        y=0.96,
                         xanchor="center",
                         font=dict(size=28, color="black")
                     ),
@@ -766,8 +766,8 @@ if uploaded_file is not None:
                         ticksuffix="%"
                     ),
                     bargap=0.5,
-                    height=550,
-                    margin=dict(l=60, r=60, t=85, b=90),
+                    height=580,
+                    margin=dict(l=60, r=60, t=100, b=90),
                 )
                 add_chart_border(fig_dept_sub)
 
@@ -822,16 +822,16 @@ if uploaded_file is not None:
             fig_pie.update_layout(
                 title=dict(
                     x=0.5,
-                    y=0.92,
+                    y=0.96,
                     xanchor="center",
                     font=dict(size=28, color="black")
                 ),
-                height=550,
-                margin=dict(l=60, r=60, t=85, b=90),
+                height=580,
+                margin=dict(l=60, r=60, t=100, b=130),
                 legend=dict(
                     orientation="h",
                     yanchor="bottom",
-                    y=-0.15,
+                    y=-0.20,
                     xanchor="center",
                     x=0.5,
                     font=dict(size=18)
