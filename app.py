@@ -364,6 +364,18 @@ if uploaded_file is not None:
             )
 
         max_total = max([q["total"] for q in ordered_quarter_data.values()])
+        num_q = len(ordered_quarter_data)
+
+        # 선택된 분기 개수에 맞춰 막대 두께와 레이아웃 폭 자동 조정
+        if num_q == 1:
+            dynamic_bargap = 0.62
+            col_ratio = [1.1, 2.8, 1.1]
+        elif num_q == 2:
+            dynamic_bargap = 0.45
+            col_ratio = [0.6, 3.8, 0.6]
+        else:
+            dynamic_bargap = 0.25
+            col_ratio = [0.2, 4.6, 0.2]
 
         fig_total.update_layout(
             barmode="group",
@@ -378,11 +390,11 @@ if uploaded_file is not None:
             ),
             yaxis=dict(
                 title="인원 수 (명)",
-                range=[200, max_total * 1.08]
+                range=[0, max_total * 1.15]  # Y축 0부터 시작하여 전체 비율이 안정적으로 보이도록 설정
             ),
-            bargap=0.25,
+            bargap=dynamic_bargap,
             bargroupgap=0.08,
-            height=580,
+            height=560,
             margin=dict(l=10, r=10, t=50, b=30),
             legend=dict(
                 orientation="h",
@@ -390,14 +402,14 @@ if uploaded_file is not None:
                 y=-0.22,
                 xanchor="center",
                 x=0.5,
-                font=dict(size=10),
+                font=dict(size=10.5),
                 itemwidth=30,
                 entrywidth=85,
                 entrywidthmode="pixels"
             ),
         )
 
-        col_l1, col_m1, col_r1 = st.columns([0.2, 4.6, 0.2])
+        col_l1, col_m1, col_r1 = st.columns(col_ratio)
         with col_m1:
             st.plotly_chart(fig_total, use_container_width=True)
 
