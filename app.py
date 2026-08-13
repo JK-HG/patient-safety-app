@@ -827,16 +827,6 @@ if uploaded_file is not None:
                 hole=0.3,
             )
 
- fig_pie = px.pie(
-    fail_summary,
-    values="건수",
-    names="미시행_유형",
-    title="<b>정확한 환자확인 미시행 사유</b>",
-    color="미시행_유형",
-    color_discrete_map=color_map,
-    hole=0.3,  # 이 부분을 0.4 정도로 수정하고 아래 annotations를 추가하시면 됩니다.
-)
-
             fig_pie.update_layout(
                 title=dict(
                     x=0.5,
