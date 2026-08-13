@@ -31,32 +31,32 @@ def map_job(job):
     return "기타"
 
 
-# 2. 상황별 카테고리 매핑
+# 2. 상황별 카테고리 매핑 (넘버링 제거)
 def map_context(item):
     if pd.isna(item):
-        return "6. 그 외 항목"
+        return "그 외 항목"
 
     item = str(item).strip()
 
     if item in ["진료 전", "기 타 - 수납 시", "기 타 - 입원 시"]:
-        return "1. 입원/외래진료/수납"
+        return "입원/외래진료/수납"
     elif item == "의약품 투여 전":
-        return "2. 투약"
+        return "투약"
     elif item.startswith("검사 시행 전"):
-        return "3. 검사/검체 채취"
+        return "검사/검체 채취"
     elif (
         item.startswith("처치 및 시술 전")
         or item.startswith("혈액제제 투여 전")
         or "수술전" in item
     ):
-        return "4. 처치/수술/수혈"
+        return "처치/수술/수혈"
     elif item == "기 타 - 물리치료":
-        return "5. 물리치료"
+        return "물리치료"
     else:
-        return "6. 그 외 항목"
+        return "그 외 항목"
 
 
-# 3. 부서 대분류 & 소분류 매핑
+# 3. 부서 대분류 & 소분류 매핑 (넘버링 제거)
 def map_dept_detailed(dept, job):
     dept_str = (
         str(dept).strip()
@@ -89,21 +89,21 @@ def map_dept_detailed(dept, job):
 
     if job_str == "의사":
         sub_dept = dept_clean if dept_clean else "진료과"
-        return "1. 진료과", sub_dept
+        return "진료과", sub_dept
 
     if job_str == "간호사":
         if dept_clean in outpatient_depts:
-            return "2. 간호부", "외래"
+            return "간호부", "외래"
         else:
-            return "2. 간호부", dept_clean if dept_clean else "외래"
+            return "간호부", dept_clean if dept_clean else "외래"
 
     if dept_clean in ["물리치료실", "영상의학과", "수납/접수"]:
-        return "3. 진료지원 및 행정", dept_clean
+        return "진료지원 및 행정", dept_clean
 
     if dept_clean in outpatient_depts:
-        return "2. 간호부", "외래"
+        return "간호부", "외래"
 
-    return "4. 기타", dept_clean if dept_clean else "기타"
+    return "기타", dept_clean if dept_clean else "기타"
 
 
 # 4. 미시행 유형 분류 함수
@@ -342,7 +342,7 @@ if uploaded_file is not None:
                 )
             )
 
-            # 미시행 막대 (간결한 숫자로 표시하여 겹침 방지)
+            # 미시행 막대
             fail_p1, fail_p2, fail_fin = tot - p1, tot - p2, tot - fin
             
             fig_total.add_trace(
@@ -472,11 +472,11 @@ if uploaded_file is not None:
         raw_context = calc_stats_raw(df, "상황")
 
         context_order = [
-            "1. 입원/외래진료/수납",
-            "2. 투약",
-            "3. 검사/검체 채취",
-            "4. 처치/수술/수혈",
-            "5. 물리치료",
+            "입원/외래진료/수납",
+            "투약",
+            "검사/검체 채취",
+            "처치/수술/수혈",
+            "물리치료",
         ]
         raw_context_filtered = raw_context[
             raw_context["상황"].isin(context_order)
@@ -601,7 +601,7 @@ if uploaded_file is not None:
 
         st.markdown("#### 📈 대분류별 세부 부서 이행률 막대그래프")
 
-        valid_categories = ["1. 진료과", "2. 간호부", "3. 진료지원 및 행정"]
+        valid_categories = ["진료과", "간호부", "진료지원 및 행정"]
         dept_categories = [
             c
             for c in sorted(raw_dept_sub["부서_대분류"].unique())
@@ -617,7 +617,7 @@ if uploaded_file is not None:
                     ~sub_df["부서_소분류"].str.lower().isin(["기타", "none", "nan"])
                 ].copy()
 
-                if cat == "3. 진료지원 및 행정":
+                if cat == "진료지원 및 행정":
                     custom_order = ["물리치료실", "영상의학과", "수납/접수"]
                     sub_df["부서_소분류"] = pd.Categorical(
                         sub_df["부서_소분류"],
