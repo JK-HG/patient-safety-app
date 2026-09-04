@@ -321,10 +321,11 @@ if uploaded_file is not None:
         categories = ["1차 환자성명 확인", "2차 등록번호 확인", "정확한 환자확인"]
         fig_total = go.Figure()
 
+        # 3분기 색상을 눈에 띄게 변경 (시행: 청록색 #0E7490, 미시행: 주황색 #D97706)
         q_colors = {
             "1분기": ("#1E3A8A", "#EF4444"),
             "2분기": ("#15803D", "#F59E0B"),
-            "3분기": ("#C2410C", "#991B1B"),
+            "3분기": ("#0E7490", "#D97706"),
             "4분기": ("#6B21A8", "#DB2777"),
         }
 
@@ -409,7 +410,7 @@ if uploaded_file is not None:
             yaxis=dict(
                 title=None,
                 tickfont=dict(size=18, color="black"),
-                range=[0, max_total * 1.30],  # 상한선 여유를 30%로 넓혀 고이행률 수치에서도 안전하게 표시
+                range=[0, max_total * 1.30],
                 autorange=False,
             ),
             bargap=dynamic_bargap,
@@ -762,7 +763,6 @@ if uploaded_file is not None:
 
                 chart_title = dept_title_map.get(cat, f"{cat} 정확한 환자확인")
 
-                # 소수점 포맷팅 적용된 텍스트 생성
                 sub_df["텍스트_표시"] = sub_df["정확한확인_비율"].apply(
                     lambda x: f"{format_pct(x)}%"
                 )
@@ -846,7 +846,6 @@ if uploaded_file is not None:
                 hole=0.3,
             )
 
-            # 파이 차트 중앙 텍스트 추가
             total_fail = fail_summary["건수"].sum()
             fig_pie.add_annotation(
                 text=f"총 미시행<br><b>{total_fail}건</b>",
