@@ -318,7 +318,6 @@ if uploaded_file is not None:
         categories = ["1차 환자성명 확인", "2차 등록번호 확인", "정확한 환자확인"]
         fig_total = go.Figure()
 
-        # 3분기 색상을 눈에 띄게 변경 (시행: 청록색 #0E7490, 미시행: 주황색 #D97706)
         q_colors = {
             "1분기": ("#1E3A8A", "#EF4444"),
             "2분기": ("#15803D", "#F59E0B"),
@@ -340,18 +339,19 @@ if uploaded_file is not None:
                 q_name, ("#1E3A8A", "#EF4444")
             )
 
+            # 기둥 내부에 [분기명 + 건수 + 퍼센트]를 함께 표시하여 아랫쪽(내부)에서 분기 인지 가능하도록 설정
             fig_total.add_trace(
                 go.Bar(
                     name=f"{q_name} (시행)",
                     x=categories,
                     y=[p1, p2, fin],
                     text=[
-                        f"<b>{p1}명</b><br>({p1_pct}%)",
-                        f"<b>{p2}명</b><br>({p2_pct}%)",
-                        f"<b>{fin}명</b><br>({fin_pct}%)",
+                        f"<b>{q_name}</b><br>{p1}명<br>({p1_pct}%)",
+                        f"<b>{q_name}</b><br>{p2}명<br>({p2_pct}%)",
+                        f"<b>{q_name}</b><br>{fin}명<br>({fin_pct}%)",
                     ],
                     textposition="inside",
-                    insidetextfont=dict(size=18, color="white"),
+                    insidetextfont=dict(size=16, color="white"),
                     marker_color=pass_color,
                     offsetgroup=q_name,
                 )
@@ -365,12 +365,18 @@ if uploaded_file is not None:
                     x=categories,
                     y=[fail_p1, fail_p2, fail_fin],
                     text=[
-                        f"<b>{fail_p1}명</b>" if fail_p1 > 0 else "",
-                        f"<b>{fail_p2}명</b>" if fail_p2 > 0 else "",
-                        f"<b>{fail_fin}명</b>" if fail_fin > 0 else "",
+                        f"<b>{q_name}</b><br>{fail_p1}명"
+                        if fail_p1 > 0
+                        else "",
+                        f"<b>{q_name}</b><br>{fail_p2}명"
+                        if fail_p2 > 0
+                        else "",
+                        f"<b>{q_name}</b><br>{fail_fin}명"
+                        if fail_fin > 0
+                        else "",
                     ],
-                    textposition="outside",
-                    outsidetextfont=dict(size=18, color=fail_color),
+                    textposition="inside",
+                    insidetextfont=dict(size=14, color="white"),
                     marker_color=fail_color,
                     offsetgroup=q_name,
                     base=[p1, p2, fin],
