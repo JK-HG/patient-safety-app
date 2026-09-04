@@ -339,19 +339,19 @@ if uploaded_file is not None:
                 q_name, ("#1E3A8A", "#EF4444")
             )
 
-            # 1. 시행 영역 (기둥 하단에 분기명 배치, 상단에 건수/퍼센트 배치)
+            # 1. 시행 영역: 분기명을 기둥 제일 아랫쪽(Y축 0 부근)에 배치, 인원수/퍼센트는 상단에 배치
             fig_total.add_trace(
                 go.Bar(
                     name=f"{q_name} (시행)",
                     x=categories,
                     y=[p1, p2, fin],
                     text=[
-                        f"<b>{q_name}</b><br><br>{p1}명<br>({p1_pct}%)",
-                        f"<b>{q_name}</b><br><br>{p2}명<br>({p2_pct}%)",
-                        f"<b>{q_name}</b><br><br>{fin}명<br>({fin_pct}%)",
+                        f"{p1}명<br>({p1_pct}%)<br><br><b>{q_name}</b>",
+                        f"{p2}명<br>({p2_pct}%)<br><br><b>{q_name}</b>",
+                        f"{fin}명<br>({fin_pct}%)<br><br><b>{q_name}</b>",
                     ],
                     textposition="inside",
-                    insidetextfont=dict(size=16, color="white"),
+                    insidetextfont=dict(size=15, color="white"),
                     marker_color=pass_color,
                     offsetgroup=q_name,
                 )
@@ -359,7 +359,7 @@ if uploaded_file is not None:
 
             fail_p1, fail_p2, fail_fin = tot - p1, tot - p2, tot - fin
 
-            # 2. 미시행 영역 (글자 크기를 기존 크기인 15px로 원복)
+            # 2. 미시행 영역: 글자 크기를 기존 크기(15px)로 명확히 유지
             fig_total.add_trace(
                 go.Bar(
                     name=f"{q_name} (미시행)",
