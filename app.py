@@ -448,7 +448,6 @@ if uploaded_file is not None:
         st.dataframe(res_job_df, use_container_width=True)
 
         fig_job = go.Figure()
-        # [수정] 1차가 먼저(아래 또는 왼쪽), 2차가 나중에(위 또는 오른쪽) 오도록 트레이스 순서 변경
         fig_job.add_trace(
             go.Bar(
                 name="1차 확인 비율 (%)",
@@ -553,7 +552,6 @@ if uploaded_file is not None:
         st.dataframe(res_context_df, use_container_width=True)
 
         fig_context = go.Figure()
-        # [수정] 1차를 먼저 추가하고 2차를 나중에 추가하여 범례 및 순서 정상화
         fig_context.add_trace(
             go.Bar(
                 name="1차 확인 비율 (%)",
@@ -826,7 +824,6 @@ if uploaded_file is not None:
             )
             fail_summary.columns = ["미시행_유형", "건수"]
 
-            # [수정] 범례 및 조각 순서가 '1차 미시행', '2차 미시행', '1,2차 미시행' 순으로 나타나도록 카테고리 지정
             fail_order = ["1차 미시행", "2차 미시행", "1,2차 미시행"]
             fail_summary["미시행_유형"] = pd.Categorical(
                 fail_summary["미시행_유형"], categories=fail_order, ordered=True
