@@ -329,11 +329,11 @@ if uploaded_file is not None:
             fin_pct = format_pct(round(fin / tot * 100, 1) if tot > 0 else 0)
 
             if q_name == current_quarter:
-                pass_color = "#0E7490"  # 현재 데이터 시행 색상 (청록색)
-                fail_color = "#D97706"  # 현재 데이터 미시행 색상 (주황색)
+                pass_color = "#0E7490"
+                fail_color = "#D97706"
             else:
-                pass_color = "#1E3A8A"  # 이전 데이터 시행 공통 색상 (진한 남색)
-                fail_color = "#EF4444"  # 이전 데이터 미시행 공통 색상 (빨간색)
+                pass_color = "#1E3A8A"
+                fail_color = "#EF4444"
 
             fig_total.add_trace(
                 go.Bar(
@@ -448,7 +448,6 @@ if uploaded_file is not None:
         st.dataframe(res_job_df, use_container_width=True)
 
         fig_job = go.Figure()
-        # [수정] 범례 및 순서가 1차 -> 2차 순으로 배치되도록 1차를 먼저 추가
         fig_job.add_trace(
             go.Bar(
                 name="1차 확인 비율 (%)",
@@ -516,6 +515,7 @@ if uploaded_file is not None:
                 font=dict(size=18),
                 entrywidth=200,
                 entrywidthmode="pixels",
+                traceorder="normal",  # 범례 순서를 트레이스 추가 순서(1차 -> 2차)로 고정
             ),
         )
 
@@ -553,7 +553,6 @@ if uploaded_file is not None:
         st.dataframe(res_context_df, use_container_width=True)
 
         fig_context = go.Figure()
-        # [수정] 범례 및 순서가 1차 -> 2차 순으로 배치되도록 1차를 먼저 추가
         fig_context.add_trace(
             go.Bar(
                 name="1차 확인 비율 (%)",
@@ -621,6 +620,7 @@ if uploaded_file is not None:
                 font=dict(size=18),
                 entrywidth=200,
                 entrywidthmode="pixels",
+                traceorder="normal",  # 범례 순서를 트레이스 추가 순서(1차 -> 2차)로 고정
             ),
         )
 
