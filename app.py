@@ -430,7 +430,7 @@ if uploaded_file is not None:
         st.divider()
 
         # -------------------------------------------------------------
-        # 2. 직군별 정확한 환자 확인
+        # 2. 직군별 정확한 환자 확인 (순서 수정 완료: 1차 먼저 추가)
         # -------------------------------------------------------------
         st.subheader("👥 2) 직군별 정확한 환자 확인")
         raw_job = calc_stats_raw(df, "직군")
@@ -448,6 +448,7 @@ if uploaded_file is not None:
         st.dataframe(res_job_df, use_container_width=True)
 
         fig_job = go.Figure()
+        # 1차 확인 비율 먼저 추가 (하단/왼쪽)
         fig_job.add_trace(
             go.Bar(
                 name="1차 확인 비율 (%)",
@@ -462,6 +463,7 @@ if uploaded_file is not None:
                 marker_color="#3366cc",
             )
         )
+        # 2차 확인 비율 나중에 추가 (상단/오른쪽)
         fig_job.add_trace(
             go.Bar(
                 name="2차 확인 비율 (%)",
@@ -526,7 +528,7 @@ if uploaded_file is not None:
         st.divider()
 
         # -------------------------------------------------------------
-        # 3. 상황별 정확한 환자 확인
+        # 3. 상황별 정확한 환자 확인 (순서 수정 완료: 1차 먼저 추가)
         # -------------------------------------------------------------
         st.subheader("📋 3) 상황별 정확한 환자 확인")
         raw_context = calc_stats_raw(df, "상황")
@@ -552,6 +554,7 @@ if uploaded_file is not None:
         st.dataframe(res_context_df, use_container_width=True)
 
         fig_context = go.Figure()
+        # 1차 확인 비율 먼저 추가 (하단/왼쪽)
         fig_context.add_trace(
             go.Bar(
                 name="1차 확인 비율 (%)",
@@ -566,6 +569,7 @@ if uploaded_file is not None:
                 marker_color="#3366cc",
             )
         )
+        # 2차 확인 비율 나중에 추가 (상단/오른쪽)
         fig_context.add_trace(
             go.Bar(
                 name="2차 확인 비율 (%)",
