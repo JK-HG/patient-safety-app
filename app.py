@@ -409,7 +409,8 @@ if uploaded_file is not None:
             yaxis=dict(
                 title=None,
                 tickfont=dict(size=18, color="black"),
-                range=[0, max_total * 1.20],
+                range=[0, max_total * 1.30],  # 상한선 여유를 30%로 넓혀 고이행률 수치에서도 안전하게 표시
+                autorange=False,
             ),
             bargap=dynamic_bargap,
             bargroupgap=0.08,
