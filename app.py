@@ -328,12 +328,13 @@ if uploaded_file is not None:
             p2_pct = format_pct(round(p2 / tot * 100, 1) if tot > 0 else 0)
             fin_pct = format_pct(round(fin / tot * 100, 1) if tot > 0 else 0)
 
+            # [수정] 현재 데이터와 비교 데이터의 색상 조합 교체 (현재 데이터에 진한 남색/빨간색 적용)
             if q_name == current_quarter:
-                pass_color = "#0E7490"
-                fail_color = "#D97706"
+                pass_color = "#1E3A8A"  # 현재 데이터 시행 색상 (진한 남색)
+                fail_color = "#EF4444"  # 현재 데이터 미시행 색상 (빨간색)
             else:
-                pass_color = "#1E3A8A"
-                fail_color = "#EF4444"
+                pass_color = "#0E7490"  # 이전 데이터 시행 색상 (청록색)
+                fail_color = "#D97706"  # 이전 데이터 미시행 색상 (주황색)
 
             fig_total.add_trace(
                 go.Bar(
@@ -515,7 +516,7 @@ if uploaded_file is not None:
                 font=dict(size=18),
                 entrywidth=200,
                 entrywidthmode="pixels",
-                traceorder="normal",  # 범례 순서를 트레이스 추가 순서(1차 -> 2차)로 고정
+                traceorder="normal",
             ),
         )
 
@@ -620,7 +621,7 @@ if uploaded_file is not None:
                 font=dict(size=18),
                 entrywidth=200,
                 entrywidthmode="pixels",
-                traceorder="normal",  # 범례 순서를 트레이스 추가 순서(1차 -> 2차)로 고정
+                traceorder="normal",
             ),
         )
 
