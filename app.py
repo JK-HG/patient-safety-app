@@ -318,14 +318,7 @@ if uploaded_file is not None:
         categories = ["1차 환자성명 확인", "2차 등록번호 확인", "정확한 환자확인"]
         fig_total = go.Figure()
 
-        # 3분기 색상을 눈에 띄게 변경 (시행: 청록색 #0E7490, 미시행: 주황색 #D97706)
-        q_colors = {
-            "1분기": ("#1E3A8A", "#EF4444"),
-            "2분기": ("#15803D", "#F59E0B"),
-            "3분기": ("#0E7490", "#D97706"),
-            "4분기": ("#6B21A8", "#DB2777"),
-        }
-
+        # 현재 데이터(업로드된 분기)는 눈에 띄는 색상 (청록색/주황색), 다른 이전 데이터들은 모두 동일한 표준 색상 (진한 남색/빨간색)으로 지정
         for q_name, q_val in ordered_quarter_data.items():
             tot = q_val["total"]
             p1 = q_val["p1"]
@@ -336,9 +329,12 @@ if uploaded_file is not None:
             p2_pct = format_pct(round(p2 / tot * 100, 1) if tot > 0 else 0)
             fin_pct = format_pct(round(fin / tot * 100, 1) if tot > 0 else 0)
 
-            pass_color, fail_color = q_colors.get(
-                q_name, ("#1E3A8A", "#EF4444")
-            )
+            if q_name == current_quarter:
+                pass_color = "#0E7490"  # 현재 데이터 시행 색상 (청록색)
+                fail_color = "#D97706"  # 현재 데이터 미시행 색상 (주황색)
+            else:
+                pass_color = "#1E3A8A"  # 이전 데이터 시행 공통 색상 (진한 남색)
+                fail_color = "#EF4444"  # 이전 데이터 미시행 공통 색상 (빨간색)
 
             fig_total.add_trace(
                 go.Bar(
@@ -764,7 +760,6 @@ if uploaded_file is not None:
                     lambda x: f"{format_pct(x)}%"
                 )
 
-                # 진료지원 및 행정 탭일 때는 항목이 3개뿐이므로 막대가 뚱뚱해지지 않도록 bargap을 넓게 설정 (0.7)
                 current_bargap = 0.7 if cat == "진료지원 및 행정" else 0.5
 
                 fig_dept_sub = px.bar(
