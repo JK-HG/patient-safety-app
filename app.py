@@ -286,7 +286,6 @@ if uploaded_file is not None:
                             f"1차 성명 확인 ({q_name})",
                             value=290,
                             min_value=0,
-                            max_value=q_total,
                             step=1,
                             key=f"p1_{q_name}",
                         )
@@ -294,7 +293,6 @@ if uploaded_file is not None:
                             f"2차 등록번호 확인 ({q_name})",
                             value=285,
                             min_value=0,
-                            max_value=q_total,
                             step=1,
                             key=f"p2_{q_name}",
                         )
@@ -302,7 +300,6 @@ if uploaded_file is not None:
                             f"정확한 환자확인 ({q_name})",
                             value=280,
                             min_value=0,
-                            max_value=q_total,
                             step=1,
                             key=f"fin_{q_name}",
                         )
