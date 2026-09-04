@@ -318,7 +318,6 @@ if uploaded_file is not None:
         categories = ["1차 환자성명 확인", "2차 등록번호 확인", "정확한 환자확인"]
         fig_total = go.Figure()
 
-        # 현재 데이터(업로드된 분기)는 눈에 띄는 색상 (청록색/주황색), 다른 이전 데이터들은 모두 동일한 표준 색상 (진한 남색/빨간색)으로 지정
         for q_name, q_val in ordered_quarter_data.items():
             tot = q_val["total"]
             p1 = q_val["p1"]
@@ -449,6 +448,7 @@ if uploaded_file is not None:
         st.dataframe(res_job_df, use_container_width=True)
 
         fig_job = go.Figure()
+        # [수정] 1차가 먼저(아래 또는 왼쪽), 2차가 나중에(위 또는 오른쪽) 오도록 트레이스 순서 변경
         fig_job.add_trace(
             go.Bar(
                 name="1차 확인 비율 (%)",
@@ -553,6 +553,7 @@ if uploaded_file is not None:
         st.dataframe(res_context_df, use_container_width=True)
 
         fig_context = go.Figure()
+        # [수정] 1차를 먼저 추가하고 2차를 나중에 추가하여 범례 및 순서 정상화
         fig_context.add_trace(
             go.Bar(
                 name="1차 확인 비율 (%)",
@@ -825,6 +826,15 @@ if uploaded_file is not None:
             )
             fail_summary.columns = ["미시행_유형", "건수"]
 
+            # [수정] 범례 및 조각 순서가 '1차 미시행', '2차 미시행', '1,2차 미시행' 순으로 나타나도록 카테고리 지정
+            fail_order = ["1차 미시행", "2차 미시행", "1,2차 미시행"]
+            fail_summary["미시행_유형"] = pd.Categorical(
+                fail_summary["미시행_유형"], categories=fail_order, ordered=True
+            )
+            fail_summary = fail_summary.sort_values("미시행_유형").reset_index(
+                drop=True
+            )
+
             color_map = {
                 "1차 미시행": "#ff9999",
                 "2차 미시행": "#ffcc99",
@@ -839,6 +849,7 @@ if uploaded_file is not None:
                 color="미시행_유형",
                 color_discrete_map=color_map,
                 hole=0.3,
+                category_orders={"미시행_유형": fail_order},
             )
 
             total_fail = fail_summary["건수"].sum()
