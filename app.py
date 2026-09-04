@@ -339,16 +339,16 @@ if uploaded_file is not None:
                 q_name, ("#1E3A8A", "#EF4444")
             )
 
-            # 기둥 내부에 [분기명 + 건수 + 퍼센트]를 함께 표시하여 아랫쪽(내부)에서 분기 인지 가능하도록 설정
+            # 1. 시행 영역 (기둥 하단에 분기명 배치, 상단에 건수/퍼센트 배치)
             fig_total.add_trace(
                 go.Bar(
                     name=f"{q_name} (시행)",
                     x=categories,
                     y=[p1, p2, fin],
                     text=[
-                        f"<b>{q_name}</b><br>{p1}명<br>({p1_pct}%)",
-                        f"<b>{q_name}</b><br>{p2}명<br>({p2_pct}%)",
-                        f"<b>{q_name}</b><br>{fin}명<br>({fin_pct}%)",
+                        f"<b>{q_name}</b><br><br>{p1}명<br>({p1_pct}%)",
+                        f"<b>{q_name}</b><br><br>{p2}명<br>({p2_pct}%)",
+                        f"<b>{q_name}</b><br><br>{fin}명<br>({fin_pct}%)",
                     ],
                     textposition="inside",
                     insidetextfont=dict(size=16, color="white"),
@@ -359,24 +359,19 @@ if uploaded_file is not None:
 
             fail_p1, fail_p2, fail_fin = tot - p1, tot - p2, tot - fin
 
+            # 2. 미시행 영역 (글자 크기를 기존 크기인 15px로 원복)
             fig_total.add_trace(
                 go.Bar(
                     name=f"{q_name} (미시행)",
                     x=categories,
                     y=[fail_p1, fail_p2, fail_fin],
                     text=[
-                        f"<b>{q_name}</b><br>{fail_p1}명"
-                        if fail_p1 > 0
-                        else "",
-                        f"<b>{q_name}</b><br>{fail_p2}명"
-                        if fail_p2 > 0
-                        else "",
-                        f"<b>{q_name}</b><br>{fail_fin}명"
-                        if fail_fin > 0
-                        else "",
+                        f"<b>{fail_p1}명</b>" if fail_p1 > 0 else "",
+                        f"<b>{fail_p2}명</b>" if fail_p2 > 0 else "",
+                        f"<b>{fail_fin}명</b>" if fail_fin > 0 else "",
                     ],
                     textposition="inside",
-                    insidetextfont=dict(size=14, color="white"),
+                    insidetextfont=dict(size=15, color="white"),
                     marker_color=fail_color,
                     offsetgroup=q_name,
                     base=[p1, p2, fin],
