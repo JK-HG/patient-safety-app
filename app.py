@@ -764,6 +764,9 @@ if uploaded_file is not None:
                     lambda x: f"{format_pct(x)}%"
                 )
 
+                # 진료지원 및 행정 탭일 때는 항목이 3개뿐이므로 막대가 뚱뚱해지지 않도록 bargap을 넓게 설정 (0.7)
+                current_bargap = 0.7 if cat == "진료지원 및 행정" else 0.5
+
                 fig_dept_sub = px.bar(
                     sub_df,
                     x="부서_소분류",
@@ -797,7 +800,7 @@ if uploaded_file is not None:
                         range=[0, 115],
                         ticksuffix="%",
                     ),
-                    bargap=0.5,
+                    bargap=current_bargap,
                     height=580,
                     margin=dict(l=80, r=60, t=100, b=90),
                 )
