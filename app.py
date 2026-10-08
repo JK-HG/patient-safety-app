@@ -315,63 +315,120 @@ if uploaded_file is not None:
             q: quarter_data[q] for q in all_quarters_list if q in quarter_data
         }
 
-        categories = ["1차 환자성명 확인", "2차 등록번호 확인", "정확한 환자확인"]
+        # ─────────────────────────────────────
+        # 1. 모니터링 총괄 현황
+        # ─────────────────────────────────────
+
+        categories = [
+            "1차 환자성명 확인",
+            "2차 등록번호 확인",
+            "정확한 환자확인"
+        ]
+
         fig_total = go.Figure()
 
-        # 분기별 막대 위치 조정을 위한 x축 이동값
+        # 선택된 분기 수
         num_q = len(ordered_quarter_data)
 
+        # ─────────────────────────────────────
+        # 분기별 막대 위치 설정
+        # ─────────────────────────────────────
         if num_q == 1:
-            quarter_xshift = [0]
+            quarter_offsets = [0]
         elif num_q == 2:
-            quarter_xshift = [-28, 28]
+            quarter_offsets = [-0.5, 0.5]
         else:
-            quarter_xshift = [-42, 0, 42]
+            quarter_offsets = [-0.8, 0, 0.8]
 
-        for q_idx, (q_name, q_val) in enumerate(ordered_quarter_data.items()):
+        # 각 항목별 중심 위치
+        category_centers = [0, 4, 8]
+
+        # 실제 막대 위치와 x축에 표시할 분기명 저장
+        all_x_positions = []
+        all_x_labels = []
+
+        # ─────────────────────────────────────
+        # 분기별 막대 생성
+        # ─────────────────────────────────────
+        for q_idx, (q_name, q_val) in enumerate(
+            ordered_quarter_data.items()
+        ):
+
             tot = q_val["total"]
             p1 = q_val["p1"]
             p2 = q_val["p2"]
             fin = q_val["final"]
 
-            p1_pct = format_pct(round(p1 / tot * 100, 1) if tot > 0 else 0)
-            p2_pct = format_pct(round(p2 / tot * 100, 1) if tot > 0 else 0)
-            fin_pct = format_pct(round(fin / tot * 100, 1) if tot > 0 else 0)
+            p1_pct = format_pct(
+                round(p1 / tot * 100, 1) if tot > 0 else 0
+            )
+            p2_pct = format_pct(
+                round(p2 / tot * 100, 1) if tot > 0 else 0
+            )
+            fin_pct = format_pct(
+                round(fin / tot * 100, 1) if tot > 0 else 0
+            )
 
-            # 현재 데이터와 비교 데이터의 색상
+            # ─────────────────────────────────
+            # 색상 설정
+            # ─────────────────────────────────
             if q_name == current_quarter:
-                pass_color = "#1E3A8A"  # 현재 데이터 시행 색상
-                fail_color = "#EF4444"  # 현재 데이터 미시행 색상
+                pass_color = "#1E3A8A"   # 현재 분기 시행
+                fail_color = "#EF4444"   # 현재 분기 미시행
             else:
-                pass_color = "#0E7490"  # 이전 데이터 시행 색상
-                fail_color = "#D97706"  # 이전 데이터 미시행 색상
+                pass_color = "#0E7490"   # 비교 분기 시행
+                fail_color = "#D97706"   # 비교 분기 미시행
 
-            # ─────────────────────────────────────
-            # 시행 막대
-            # ─────────────────────────────────────
+            # ─────────────────────────────────
+            # 현재 분기의 x 위치
+            # ─────────────────────────────────
+            x_positions = [
+                category_centers[0] + quarter_offsets[q_idx],
+                category_centers[1] + quarter_offsets[q_idx],
+                category_centers[2] + quarter_offsets[q_idx],
+            ]
+
+            # x축에 표시할 분기명
+            all_x_positions.extend(x_positions)
+            all_x_labels.extend([q_name, q_name, q_name])
+
+            # ─────────────────────────────────
+            # 시행
+            # ─────────────────────────────────
             fig_total.add_trace(
                 go.Bar(
                     name=f"{q_name} (시행)",
-                    x=categories,
+                    x=x_positions,
                     y=[p1, p2, fin],
+
+                    width=0.75,
+
                     text=[
                         f"<b>{p1}명</b><br>({p1_pct}%)",
                         f"<b>{p2}명</b><br>({p2_pct}%)",
                         f"<b>{fin}명</b><br>({fin_pct}%)",
                     ],
+
                     textposition="inside",
+
                     insidetextfont=dict(
                         size=18,
                         color="white"
                     ),
+
                     marker_color=pass_color,
-                    offsetgroup=q_name,
+
+                    hovertemplate=(
+                        f"{q_name}<br>"
+                        "%{y}명"
+                        "<extra></extra>"
+                    ),
                 )
             )
 
-            # ─────────────────────────────────────
-            # 미시행 막대
-            # ─────────────────────────────────────
+            # ─────────────────────────────────
+            # 미시행
+            # ─────────────────────────────────
             fail_p1 = tot - p1
             fail_p2 = tot - p2
             fail_fin = tot - fin
@@ -379,63 +436,63 @@ if uploaded_file is not None:
             fig_total.add_trace(
                 go.Bar(
                     name=f"{q_name} (미시행)",
-                    x=categories,
+                    x=x_positions,
                     y=[fail_p1, fail_p2, fail_fin],
+
+                    width=0.75,
+
                     text=[
-                        f"<b>{fail_p1}명</b>" if fail_p1 > 0 else "",
-                        f"<b>{fail_p2}명</b>" if fail_p2 > 0 else "",
-                        f"<b>{fail_fin}명</b>" if fail_fin > 0 else "",
+                        f"<b>{fail_p1}명</b>"
+                        if fail_p1 > 0 else "",
+
+                        f"<b>{fail_p2}명</b>"
+                        if fail_p2 > 0 else "",
+
+                        f"<b>{fail_fin}명</b>"
+                        if fail_fin > 0 else "",
                     ],
+
                     textposition="outside",
+
                     outsidetextfont=dict(
                         size=18,
                         color=fail_color
                     ),
+
                     marker_color=fail_color,
-                    offsetgroup=q_name,
-                    base=[p1, p2, fin],
+
+                    hovertemplate=(
+                        f"{q_name}<br>"
+                        "%{y}명 미시행"
+                        "<extra></extra>"
+                    ),
                 )
             )
 
-            # ─────────────────────────────────────
-            # 각 막대 하단에 분기명 표시
-            # ─────────────────────────────────────
-            for category in categories:
-                fig_total.add_annotation(
-                    x=category,
-                    y=5,
-                    xshift=quarter_xshift[q_idx],
-                    text=f"<b>{q_name}</b>",
-                    showarrow=False,
-                    font=dict(
-                        size=16,
-                        color="white"
-                    ),
-                    xanchor="center",
-                    yanchor="bottom"
-                )
-
+        # ─────────────────────────────────────
         # 최대 대상자 수
+        # ─────────────────────────────────────
         max_total = max(
             [q["total"] for q in ordered_quarter_data.values()]
         )
 
-        # 분기 수에 따른 막대 간격 및 좌우 여백
+        # ─────────────────────────────────────
+        # 분기 수에 따른 좌우 여백
+        # ─────────────────────────────────────
         if num_q == 1:
-            dynamic_bargap = 0.62
             col_ratio = [0.5, 4.0, 0.5]
         elif num_q == 2:
-            dynamic_bargap = 0.45
             col_ratio = [0.3, 4.4, 0.3]
         else:
-            dynamic_bargap = 0.25
             col_ratio = [0.1, 4.8, 0.1]
 
         # ─────────────────────────────────────
         # 그래프 Layout
         # ─────────────────────────────────────
         fig_total.update_layout(
-            barmode="group",
+
+            # 시행 + 미시행을 하나의 막대로 쌓음
+            barmode="stack",
 
             title=dict(
                 text="<b>정확한 환자 확인율</b>",
@@ -449,50 +506,95 @@ if uploaded_file is not None:
                 ),
             ),
 
-            # 기존 하단 범주명 숨기기
+            # ───────────────────────────────
+            # x축
+            # ───────────────────────────────
             xaxis=dict(
-                showticklabels=False,
+
+                # 실제 막대 위치
+                tickmode="array",
+                tickvals=all_x_positions,
+
+                # 각 막대 바로 아래에 분기명 표시
+                ticktext=all_x_labels,
+
+                tickfont=dict(
+                    color="black",
+                    size=16,
+                    family="sans-serif"
+                ),
+
                 showline=False,
-                ticks="",
+                showgrid=False,
+                zeroline=False,
+
                 title=None,
+
+                # 양쪽 여백
+                range=[
+                    min(all_x_positions) - 1.2,
+                    max(all_x_positions) + 1.2
+                ],
             ),
 
+            # ───────────────────────────────
+            # y축
+            # ───────────────────────────────
             yaxis=dict(
                 title=None,
+
                 tickfont=dict(
                     size=18,
                     color="black"
                 ),
-                range=[0, max_total * 1.30],
+
+                range=[
+                    0,
+                    max_total * 1.30
+                ],
+
                 autorange=False,
+
+                gridcolor="#E5E7EB",
+                zeroline=False,
             ),
 
-            bargap=dynamic_bargap,
-            bargroupgap=0.08,
+            # 막대 간격
+            bargap=0,
 
+            # 그래프 크기
             height=720,
 
-            # 아래쪽 여백은 기존보다 조금 줄임
             margin=dict(
                 l=80,
                 r=100,
                 t=100,
-                b=100
+                b=120
             ),
 
+            # 범례
             legend=dict(
                 orientation="h",
+
                 yanchor="bottom",
-                y=-0.20,
+                y=-0.22,
+
                 xanchor="center",
                 x=0.5,
-                font=dict(size=14),
+
+                font=dict(
+                    size=14
+                ),
+
                 itemwidth=30,
                 entrywidth=100,
                 entrywidthmode="pixels",
             ),
         )
 
+        # ─────────────────────────────────────
+        # 그래프 출력
+        # ─────────────────────────────────────
         col_l1, col_m1, col_r1 = st.columns(col_ratio)
 
         with col_m1:
