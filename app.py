@@ -318,7 +318,17 @@ if uploaded_file is not None:
         categories = ["1차 환자성명 확인", "2차 등록번호 확인", "정확한 환자확인"]
         fig_total = go.Figure()
 
-        for q_name, q_val in ordered_quarter_data.items():
+        # 분기별 막대 위치 조정을 위한 x축 이동값
+        num_q = len(ordered_quarter_data)
+
+        if num_q == 1:
+            quarter_xshift = [0]
+        elif num_q == 2:
+            quarter_xshift = [-28, 28]
+        else:
+            quarter_xshift = [-42, 0, 42]
+
+        for q_idx, (q_name, q_val) in enumerate(ordered_quarter_data.items()):
             tot = q_val["total"]
             p1 = q_val["p1"]
             p2 = q_val["p2"]
@@ -328,14 +338,17 @@ if uploaded_file is not None:
             p2_pct = format_pct(round(p2 / tot * 100, 1) if tot > 0 else 0)
             fin_pct = format_pct(round(fin / tot * 100, 1) if tot > 0 else 0)
 
-            # [수정] 현재 데이터와 비교 데이터의 색상 조합 교체 (현재 데이터에 진한 남색/빨간색 적용)
+            # 현재 데이터와 비교 데이터의 색상
             if q_name == current_quarter:
-                pass_color = "#1E3A8A"  # 현재 데이터 시행 색상 (진한 남색)
-                fail_color = "#EF4444"  # 현재 데이터 미시행 색상 (빨간색)
+                pass_color = "#1E3A8A"  # 현재 데이터 시행 색상
+                fail_color = "#EF4444"  # 현재 데이터 미시행 색상
             else:
-                pass_color = "#0E7490"  # 이전 데이터 시행 색상 (청록색)
-                fail_color = "#D97706"  # 이전 데이터 미시행 색상 (주황색)
+                pass_color = "#0E7490"  # 이전 데이터 시행 색상
+                fail_color = "#D97706"  # 이전 데이터 미시행 색상
 
+            # ─────────────────────────────────────
+            # 시행 막대
+            # ─────────────────────────────────────
             fig_total.add_trace(
                 go.Bar(
                     name=f"{q_name} (시행)",
@@ -347,13 +360,21 @@ if uploaded_file is not None:
                         f"<b>{fin}명</b><br>({fin_pct}%)",
                     ],
                     textposition="inside",
-                    insidetextfont=dict(size=18, color="white"),
+                    insidetextfont=dict(
+                        size=18,
+                        color="white"
+                    ),
                     marker_color=pass_color,
                     offsetgroup=q_name,
                 )
             )
 
-            fail_p1, fail_p2, fail_fin = tot - p1, tot - p2, tot - fin
+            # ─────────────────────────────────────
+            # 미시행 막대
+            # ─────────────────────────────────────
+            fail_p1 = tot - p1
+            fail_p2 = tot - p2
+            fail_fin = tot - fin
 
             fig_total.add_trace(
                 go.Bar(
@@ -366,16 +387,40 @@ if uploaded_file is not None:
                         f"<b>{fail_fin}명</b>" if fail_fin > 0 else "",
                     ],
                     textposition="outside",
-                    outsidetextfont=dict(size=18, color=fail_color),
+                    outsidetextfont=dict(
+                        size=18,
+                        color=fail_color
+                    ),
                     marker_color=fail_color,
                     offsetgroup=q_name,
                     base=[p1, p2, fin],
                 )
             )
 
-        max_total = max([q["total"] for q in ordered_quarter_data.values()])
-        num_q = len(ordered_quarter_data)
+            # ─────────────────────────────────────
+            # 각 막대 하단에 분기명 표시
+            # ─────────────────────────────────────
+            for category in categories:
+                fig_total.add_annotation(
+                    x=category,
+                    y=5,
+                    xshift=quarter_xshift[q_idx],
+                    text=f"<b>{q_name}</b>",
+                    showarrow=False,
+                    font=dict(
+                        size=16,
+                        color="white"
+                    ),
+                    xanchor="center",
+                    yanchor="bottom"
+                )
 
+        # 최대 대상자 수
+        max_total = max(
+            [q["total"] for q in ordered_quarter_data.values()]
+        )
+
+        # 분기 수에 따른 막대 간격 및 좌우 여백
         if num_q == 1:
             dynamic_bargap = 0.62
             col_ratio = [0.5, 4.0, 0.5]
@@ -386,34 +431,59 @@ if uploaded_file is not None:
             dynamic_bargap = 0.25
             col_ratio = [0.1, 4.8, 0.1]
 
+        # ─────────────────────────────────────
+        # 그래프 Layout
+        # ─────────────────────────────────────
         fig_total.update_layout(
             barmode="group",
+
             title=dict(
                 text="<b>정확한 환자 확인율</b>",
                 x=0.5,
                 y=0.96,
                 xanchor="center",
                 yanchor="top",
-                font=dict(size=28, color="black"),
+                font=dict(
+                    size=28,
+                    color="black"
+                ),
             ),
+
+            # 기존 하단 범주명 숨기기
             xaxis=dict(
-                tickfont=dict(color="black", size=20, family="sans-serif"),
+                showticklabels=False,
+                showline=False,
+                ticks="",
                 title=None,
             ),
+
             yaxis=dict(
                 title=None,
-                tickfont=dict(size=18, color="black"),
+                tickfont=dict(
+                    size=18,
+                    color="black"
+                ),
                 range=[0, max_total * 1.30],
                 autorange=False,
             ),
+
             bargap=dynamic_bargap,
             bargroupgap=0.08,
+
             height=720,
-            margin=dict(l=80, r=100, t=100, b=160),
+
+            # 아래쪽 여백은 기존보다 조금 줄임
+            margin=dict(
+                l=80,
+                r=100,
+                t=100,
+                b=100
+            ),
+
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=-0.32,
+                y=-0.20,
                 xanchor="center",
                 x=0.5,
                 font=dict(size=14),
@@ -424,9 +494,13 @@ if uploaded_file is not None:
         )
 
         col_l1, col_m1, col_r1 = st.columns(col_ratio)
+
         with col_m1:
             with st.container(border=True):
-                st.plotly_chart(fig_total, use_container_width=True)
+                st.plotly_chart(
+                    fig_total,
+                    use_container_width=True
+                )
 
         st.divider()
 
